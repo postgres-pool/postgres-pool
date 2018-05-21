@@ -95,6 +95,15 @@ class Pool extends EventEmitter {
     }
   }
 
+  async query(text: string, values?: Array<any>) {
+    const connection = await this.connect();
+    try {
+      return await connection.query(text, values);
+    } finally {
+      connection.release();
+    }
+  }
+
   private async createConnection() : Promise<PoolClient> {
     const client = <PoolClient> new Client(this.options);
     client.release = () => {
