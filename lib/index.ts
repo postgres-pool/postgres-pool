@@ -37,6 +37,7 @@ class Pool extends EventEmitter {
   // Should self order by idle timeout ascending
   protected idleConnections: Array<PoolClient> = [];
   protected connectionQueue: Array<string> = [];
+  protected isEnding: boolean = false;
 
   constructor (options: PoolOptionsExplicit | PoolOptionsImplicit) {
     super();
@@ -53,7 +54,36 @@ class Pool extends EventEmitter {
     };
   }
 
+  /**
+   * Gets the number of queued requests waiting for a database connection
+   */
+  get waitingCount() : number {
+    return this.connectionQueue.length;
+  }
+
+  /**
+   * Gets the number of idle connections
+   */
+  get idleCount() : number {
+    return this.idleConnections.length;
+  }
+
+  /**
+   * Gets the total number of connections in the pool
+   */
+  get totalCount() : number {
+    return this.connections.length;
+  }
+
+  /**
+   * Gets a client connection from the pool.
+   * Note: You must call `.release()` when finished with the client connection object. That will release the connection back to the pool to be used by other requests.
+   */
   async connect() : Promise<PoolClient> {
+    if (this.isEnding) {
+      throw new Error('Cannot use pool after calling end() on the pool');
+    }
+
     const idleConnection = this.idleConnections.shift();
     if (idleConnection) {
       if (idleConnection.idleTimeoutTimer) {
@@ -95,6 +125,11 @@ class Pool extends EventEmitter {
     }
   }
 
+  /**
+   * Gets a connection to the database and executes the specified query. This method will release the connection back to the pool when the query has finished.
+   * @param text
+   * @param values
+   */
   async query(text: string, values?: Array<any>) {
     const connection = await this.connect();
     try {
@@ -104,9 +139,31 @@ class Pool extends EventEmitter {
     }
   }
 
+  /**
+   * Drains the pool of all active client connections. Used to shut down the pool down cleanly
+   */
+  async end() {
+    this.isEnding = true;
+
+    await Promise.all(this.idleConnections.map((connection) => {
+      return connection.end();
+    }));
+  }
+
+  /**
+   * Creates a new client connection to add to the pool
+   */
   private async createConnection() : Promise<PoolClient> {
     const client = <PoolClient> new Client(this.options);
+    /**
+     * Releases the client connection back to the pool, to be used by another query.
+     */
     client.release = () => {
+      if (this.isEnding) {
+        this.removeConnection(client);
+        return;
+      }
+
       const id = this.connectionQueue.shift();
 
       // Return the connection to be used by a queued request
@@ -114,20 +171,17 @@ class Pool extends EventEmitter {
         this.emit(`connection_${id}`, client);
       } else {
         client.idleTimeoutTimer = setTimeout(() => {
-          const index = this.idleConnections.indexOf(client);
-          if (index > -1) {
-            this.idleConnections.splice(index, 1);
-            client.end().catch((ex) => {
-              this.emit('error', ex);
-            });
-          } else {
-            this.emit('error', new Error('Error closing idle connection'));
-          }
+          this.removeConnection(client);
         }, this.options.idleTimeoutMillis);
 
         this.idleConnections.push(client);
       }
     };
+
+    client.on('error', (err) => {
+      this.removeConnection(client);
+      this.emit('error', err, client);
+    });
     let connectionTimeoutTimer;
     try {
       await Promise.race([
@@ -149,5 +203,25 @@ class Pool extends EventEmitter {
     }
 
     return client;
+  }
+
+  /**
+   * Removes the client connection from the pool and tries to gracefully shut it down
+   * @param {PoolClient} client
+   */
+  private removeConnection(client: PoolClient) {
+    const idleConnectionIndex = this.idleConnections.indexOf(client);
+    if (idleConnectionIndex > -1) {
+      this.idleConnections.splice(idleConnectionIndex, 1);
+    }
+
+    const connectionIndex = this.connections.indexOf(client);
+    if (connectionIndex > -1) {
+      this.connections.splice(connectionIndex, 1);
+    }
+
+    client.end().catch((ex) => {
+      this.emit('error', ex);
+    });
   }
 }
