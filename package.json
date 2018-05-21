@@ -1,0 +1,39 @@
+{
+  "name": "pg-pool",
+  "version": "1.0.0",
+  "description": "Connection pool implementation for node-pg",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "mocha --reporter spec"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mpirik/pg-pool.git"
+  },
+  "keywords": [
+    "node",
+    "postgres",
+    "pg",
+    "pool",
+    "connection",
+    "pooling"
+  ],
+  "author": "Jim Geurts <jim@biacreations.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mpirik/pg-pool/issues"
+  },
+  "homepage": "https://github.com/mpirik/pg-pool#readme",
+  "dependencies": {
+    "@types/pg": "7.4.9",
+    "uuid": "3.2.1"
+  },
+  "devDependencies": {
+    "@types/chai": "4.1.3",
+    "@types/mocha": "5.2.0",
+    "@types/uuid": "3.4.3",
+    "chai": "4.1.2"
+  }
+}
