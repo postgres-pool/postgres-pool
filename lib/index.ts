@@ -131,8 +131,8 @@ export class Pool extends EventEmitter {
 
   /**
    * Gets a connection to the database and executes the specified query. This method will release the connection back to the pool when the query has finished.
-   * @param text
-   * @param values
+   * @param {string} text
+   * @param {Array} values
    */
   async query(text: string, values?: Array<any>): Promise<QueryResult> {
     const connection = await this.connect();
@@ -150,7 +150,7 @@ export class Pool extends EventEmitter {
     this.isEnding = true;
 
     await Promise.all(this.idleConnections.map((connection) => {
-      return connection.end();
+      return this.removeConnection(connection);
     }));
   }
 
