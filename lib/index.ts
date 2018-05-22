@@ -1,15 +1,15 @@
 import { EventEmitter } from 'events';
-import { Client } from 'pg';
+import { Client, QueryResult } from 'pg';
 import { v4 } from 'uuid';
 
-interface PoolOptionsBase {
+export interface PoolOptionsBase {
   poolSize: number;
   idleTimeoutMillis: number;
   waitForAvailableConnectionTimeoutMillis: number;
   connectionTimeoutMillis: number;
 }
 
-interface PoolOptionsExplicit {
+export interface PoolOptionsExplicit {
   host: string;
   database: string;
   user?: string;
@@ -21,7 +21,7 @@ interface PoolOptionsExplicit {
   connectionTimeoutMillis?: number;
 }
 
-interface PoolOptionsImplicit {
+export interface PoolOptionsImplicit {
   connectionString: string;
   poolSize?: number;
   idleTimeoutMillis?: number;
@@ -29,12 +29,12 @@ interface PoolOptionsImplicit {
   connectionTimeoutMillis?: number;
 }
 
-type PoolClient = Client & {
+export type PoolClient = Client & {
   idleTimeoutTimer?: NodeJS.Timer;
   release: () => void;
 };
 
-class Pool extends EventEmitter {
+export class Pool extends EventEmitter {
   protected options: PoolOptionsBase & (PoolOptionsExplicit | PoolOptionsImplicit);
   protected connections: Array<PoolClient> = [];
   // Should self order by idle timeout ascending
@@ -134,7 +134,7 @@ class Pool extends EventEmitter {
    * @param text
    * @param values
    */
-  async query(text: string, values?: Array<any>) {
+  async query(text: string, values?: Array<any>): Promise<QueryResult> {
     const connection = await this.connect();
     try {
       return await connection.query(text, values);
