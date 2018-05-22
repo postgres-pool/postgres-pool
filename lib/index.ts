@@ -5,6 +5,7 @@ import { v4 } from 'uuid';
 interface PoolOptionsBase {
   poolSize: number;
   idleTimeoutMillis: number;
+  waitForAvailableConnectionTimeoutMillis: number;
   connectionTimeoutMillis: number;
 }
 
@@ -16,6 +17,7 @@ interface PoolOptionsExplicit {
   port?: number;
   poolSize?: number;
   idleTimeoutMillis?: number;
+  waitForAvailableConnectionTimeoutMillis?: number;
   connectionTimeoutMillis?: number;
 }
 
@@ -23,6 +25,7 @@ interface PoolOptionsImplicit {
   connectionString: string;
   poolSize?: number;
   idleTimeoutMillis?: number;
+  waitForAvailableConnectionTimeoutMillis?: number;
   connectionTimeoutMillis?: number;
 }
 
@@ -45,6 +48,7 @@ class Pool extends EventEmitter {
     const defaultOptions: PoolOptionsBase = {
       poolSize: 10,
       idleTimeoutMillis: 10000,
+      waitForAvailableConnectionTimeoutMillis: 90000,
       connectionTimeoutMillis: 30000,
     };
 
@@ -115,7 +119,7 @@ class Pool extends EventEmitter {
               this.connectionQueue.splice(index, 1);
             }
             reject(new Error('Timed out while waiting for available connection in pool'));
-          }, this.options.connectionTimeoutMillis);
+          }, this.options.waitForAvailableConnectionTimeoutMillis);
         }),
       ]);
     } finally {
