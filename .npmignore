@@ -1,5 +1,8 @@
 lib/
+test/
 node_modules/
+.editorconfig
 .gitignore
 .git
 .npmrc
+tsconfig.json
