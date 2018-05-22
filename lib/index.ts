@@ -101,7 +101,7 @@ export class Pool extends EventEmitter {
 
     const id = v4();
 
-    if (this.connections.length <= this.options.poolSize) {
+    if (this.connections.length < this.options.poolSize) {
       this.connections.push(id);
 
       return await this.createConnection(id);
