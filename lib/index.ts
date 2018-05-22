@@ -30,13 +30,15 @@ export interface PoolOptionsImplicit {
 }
 
 export type PoolClient = Client & {
+  uniqueId: string;
   idleTimeoutTimer?: NodeJS.Timer;
   release: () => void;
+  errorHandler: (err: Error) => void;
 };
 
 export class Pool extends EventEmitter {
   protected options: PoolOptionsBase & (PoolOptionsExplicit | PoolOptionsImplicit);
-  protected connections: Array<PoolClient> = [];
+  protected connections: Array<string> = [];
   // Should self order by idle timeout ascending
   protected idleConnections: Array<PoolClient> = [];
   protected connectionQueue: Array<string> = [];
@@ -97,14 +99,14 @@ export class Pool extends EventEmitter {
       return idleConnection;
     }
 
-    if (this.connections.length <= this.options.poolSize) {
-      const connection = await this.createConnection();
-      this.connections.push(connection);
+    const id = v4();
 
-      return connection;
+    if (this.connections.length <= this.options.poolSize) {
+      this.connections.push(id);
+
+      return await this.createConnection(id);
     }
 
-    const id = v4();
     this.connectionQueue.push(id);
     let connectionTimeoutTimer;
     try {
@@ -156,9 +158,11 @@ export class Pool extends EventEmitter {
 
   /**
    * Creates a new client connection to add to the pool
+   * @param {string} connectionId
    */
-  private async createConnection() : Promise<PoolClient> {
+  private async createConnection(connectionId: string) : Promise<PoolClient> {
     const client = <PoolClient> new Client(this.options);
+    client.uniqueId = connectionId;
     /**
      * Releases the client connection back to the pool, to be used by another query.
      */
@@ -182,10 +186,12 @@ export class Pool extends EventEmitter {
       }
     };
 
-    client.on('error', (err) => {
+    client.errorHandler = (err: Error) => {
       this.removeConnection(client);
       this.emit('error', err, client);
-    });
+    };
+
+    client.on('error', client.errorHandler);
     let connectionTimeoutTimer;
     try {
       await Promise.race([
@@ -214,12 +220,16 @@ export class Pool extends EventEmitter {
    * @param {PoolClient} client
    */
   private removeConnection(client: PoolClient) {
-    const idleConnectionIndex = this.idleConnections.indexOf(client);
+    client.removeListener('error', client.errorHandler);
+
+    const idleConnectionIndex = this.idleConnections.findIndex((connection) => {
+      return connection.uniqueId === client.uniqueId;
+    });
     if (idleConnectionIndex > -1) {
       this.idleConnections.splice(idleConnectionIndex, 1);
     }
 
-    const connectionIndex = this.connections.indexOf(client);
+    const connectionIndex = this.connections.indexOf(client.uniqueId);
     if (connectionIndex > -1) {
       this.connections.splice(connectionIndex, 1);
     }

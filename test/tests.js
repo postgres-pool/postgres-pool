@@ -112,4 +112,39 @@ describe('query', () => {
     queryStub.calledOnce.should.equal(true);
     releaseStub.calledOnce.should.equal(true);
   });
+  it('should limit total connections based on poolSize', async () => {
+    const poolSize = 2;
+    const pool = new Pool({
+      connectionString: 'postgres://foo:bar@baz:1234/xur',
+      poolSize,
+      waitForAvailableConnectionTimeoutMillis: 1,
+    });
+    pool.connections.length.should.equal(0);
+
+    const expectedResult = faker.random.uuid();
+    const connection = {
+      uniqueId: faker.random.uuid(),
+      query() {},
+      release() {},
+    };
+    const createConnectionStub = sinon.stub(pool, 'createConnection').returns(connection);
+    const queryStub = sinon.stub(connection, 'query').returns(expectedResult);
+    const releaseStub = sinon.stub(connection, 'release').returns(true);
+
+    try {
+      await Promise.all([
+        pool.query('query - 1'),
+        pool.query('query - 2'),
+        pool.query('query - 3'),
+        pool.query('query - 4'),
+      ]);
+    } catch (ex) {
+      // ignore
+    }
+    createConnectionStub.restore();
+    queryStub.restore();
+    releaseStub.restore();
+
+    pool.connections.length.should.equal(poolSize);
+  });
 });
