@@ -1,3 +1,22 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
 lib/
 test/
 node_modules/
@@ -6,3 +25,12 @@ node_modules/
 .git
 .npmrc
 tsconfig.json
+
+*~
+*#
+.DS_STORE
+.netbeans
+nbproject
+.idea
+.vscode
+package-lock.json
