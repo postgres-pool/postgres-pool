@@ -1,6 +1,7 @@
 # postgres-pool
 
 [![NPM version](https://img.shields.io/npm/v/postgres-pool.svg?style=flat)](https://npmjs.org/package/postgres-pool)
+[![node version](https://img.shields.io/node/v/postgres-pool.svg?style=flat)](https://nodejs.org)
 [![Known Vulnerabilities](https://snyk.io/test/npm/postgres-pool/badge.svg)](https://snyk.io/test/npm/postgres-pool)
 
 Connection pool implementation for [pg](https://node-postgres.com/). Compatible with [pg-pool](https://github.com/brianc/node-pg-pool) options and syntax.

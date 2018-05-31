@@ -31,6 +31,9 @@
     "pg": "~7.x.x",
     "uuid": "~3.x.x"
   },
+  "engines": {
+    "node": ">=8"
+  },
   "devDependencies": {
     "@types/chai": "4.1.3",
     "@types/mocha": "5.2.0",
