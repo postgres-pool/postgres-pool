@@ -1,6 +1,7 @@
 /// <reference types="node" />
 import { EventEmitter } from 'events';
 import { Client, QueryResult } from 'pg';
+import { StrictEventEmitter } from 'strict-event-emitter-types';
 export interface PoolOptionsBase {
     poolSize: number;
     idleTimeoutMillis: number;
@@ -31,11 +32,22 @@ export declare type PoolClient = Client & {
     release: () => void;
     errorHandler: (err: Error) => void;
 };
-export declare class Pool extends EventEmitter {
+interface PoolEvents {
+    connectionRequestQueued: () => void;
+    connectionRequestDequeued: () => void;
+    connectionAddedToPool: () => void;
+    connectionRemovedFromPool: () => void;
+    connectionIdle: () => void;
+    idleConnectionActivated: () => void;
+    error: (error: Error, client?: PoolClient) => void;
+}
+declare const Pool_base: new () => StrictEventEmitter<EventEmitter, PoolEvents, PoolEvents, "addEventListener" | "removeEventListener", "removeListener" | "on" | "addListener" | "once" | "emit">;
+export declare class Pool extends Pool_base {
     protected options: PoolOptionsBase & (PoolOptionsExplicit | PoolOptionsImplicit);
-    protected connections: Array<string>;
-    protected idleConnections: Array<PoolClient>;
-    protected connectionQueue: Array<string>;
+    protected connectionEventEmitter: EventEmitter;
+    protected connections: string[];
+    protected idleConnections: PoolClient[];
+    protected connectionQueue: string[];
     protected isEnding: boolean;
     constructor(options: PoolOptionsExplicit | PoolOptionsImplicit);
     /**
@@ -60,7 +72,7 @@ export declare class Pool extends EventEmitter {
      * @param {string} text
      * @param {Array} values
      */
-    query(text: string, values?: Array<any>): Promise<QueryResult>;
+    query(text: string, values?: any[]): Promise<QueryResult>;
     /**
      * Drains the pool of all active client connections. Used to shut down the pool down cleanly
      */
@@ -69,10 +81,11 @@ export declare class Pool extends EventEmitter {
      * Creates a new client connection to add to the pool
      * @param {string} connectionId
      */
-    private createConnection(connectionId);
+    private createConnection;
     /**
      * Removes the client connection from the pool and tries to gracefully shut it down
      * @param {PoolClient} client
      */
-    private removeConnection(client);
+    private removeConnection;
 }
+export {};

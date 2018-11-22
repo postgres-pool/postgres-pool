@@ -17,7 +17,7 @@ pids
 # Optional eslint cache
 .eslintcache
 
-lib/
+src/
 test/
 node_modules/
 .editorconfig

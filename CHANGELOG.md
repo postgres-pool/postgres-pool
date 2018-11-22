@@ -1,3 +1,9 @@
+### 1.0.4
+
+  * Strongly type pool events
+  * Add events: connectionAddedToPool, connectionRemovedFromPool, connectionIdle, idleConnectionActivated, connectionRequestQueued, connectionRequestDequeued
+  * Cleanup internal connection event listeners
+
 ### 1.0.3
 
   * Fix creating one extra connection over poolSize

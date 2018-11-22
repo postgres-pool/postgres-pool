@@ -28,20 +28,7 @@ describe('connectionStrings', () => {
 describe('createConnection', () => {
   it('should throw if connecting exceeds connectionTimeoutMillis', async () => {
     const connectStub = sinon.stub(Client.prototype, 'connect').returns(new Promise((resolve) => {
-      setTimeout(resolve, 10);
-    }));
-
-    const pool = new Pool({
-      connectionString: 'postgres://foo:bar@baz:1234/xur',
-      connectionTimeoutMillis: 1,
-    });
-
-    pool.connect().should.be.rejectedWith(Error, 'Timed out trying to connect to postgres');
-    connectStub.restore();
-  });
-  it('should call end() if timeout during connecting', async () => {
-    const connectStub = sinon.stub(Client.prototype, 'connect').returns(new Promise((resolve) => {
-      setTimeout(resolve, 10);
+      setTimeout(resolve, 100);
     }));
     const endStub = sinon.stub(Client.prototype, 'end').returns(true);
 
@@ -52,10 +39,34 @@ describe('createConnection', () => {
 
     try {
       await pool.connect();
+      false.should.equal(true);
     } catch (ex) {
+      ex.message.should.equal('Timed out trying to connect to postgres');
+    } finally {
+      connectStub.restore();
+      endStub.restore();
     }
-    connectStub.restore();
-    endStub.restore();
+  });
+  it('should call end() if timeout during connecting', async () => {
+    const connectStub = sinon.stub(Client.prototype, 'connect').returns(new Promise((resolve) => {
+      setTimeout(resolve, 100);
+    }));
+    const endStub = sinon.stub(Client.prototype, 'end').returns(true);
+
+    const pool = new Pool({
+      connectionString: 'postgres://foo:bar@baz:1234/xur',
+      connectionTimeoutMillis: 1,
+    });
+
+    try {
+      await pool.connect();
+      false.should.equal(true);
+    } catch (ex) {
+      // Note: We expect this to fail
+    } finally {
+      connectStub.restore();
+      endStub.restore();
+    }
 
     endStub.calledOnce.should.equal(true);
   });

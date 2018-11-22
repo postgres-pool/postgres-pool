@@ -1,12 +1,19 @@
 {
   "name": "postgres-pool",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Connection pool implementation for node-pg",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "mocha --reporter spec"
+    "pretest": "npm run build",
+    "test": "mocha --reporter spec",
+    "lint": "tslint --fix -p tsconfig.lint.json -c tslint.json -t stylish"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run lint"
+    }
   },
   "repository": {
     "type": "git",
@@ -27,7 +34,6 @@
   },
   "homepage": "https://github.com/mpirik/postgres-pool#readme",
   "dependencies": {
-    "@types/pg": "~7.x.x",
     "pg": "~7.x.x",
     "uuid": "~3.x.x"
   },
@@ -35,13 +41,22 @@
     "node": ">=8"
   },
   "devDependencies": {
-    "@types/chai": "4.1.3",
-    "@types/mocha": "5.2.0",
-    "@types/uuid": "3.4.3",
-    "chai": "4.1.2",
-    "chai-as-promised": "7.1.1",
-    "faker": "4.1.0",
-    "mocha": "5.2.0",
-    "sinon": "5.0.7"
+    "@types/chai": "~4.1.7",
+    "@types/chai-as-promised": "~7.1.0",
+    "@types/faker": "4.1.4",
+    "@types/mocha": "~5.2.5",
+    "@types/pg": "~7.x.x",
+    "@types/sinon": "5.0.7",
+    "@types/uuid": "~3.4.4",
+    "chai": "~4.2.0",
+    "chai-as-promised": "~7.1.1",
+    "faker": "~4.1.0",
+    "husky": "~1.2.0",
+    "mocha": "~5.2.0",
+    "sinon": "5.0.7",
+    "strict-event-emitter-types": "~2.0.0",
+    "tslint": "~5.11.0",
+    "tslint-config-airbnb": "~5.11.0",
+    "typescript": "~3.1.6"
   }
 }

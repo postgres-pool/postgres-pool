@@ -18,6 +18,7 @@ class Pool extends events_1.EventEmitter {
             connectionTimeoutMillis: 30000,
         };
         this.options = Object.assign({}, defaultOptions, options);
+        this.connectionQueueEventEmitter = new events_1.EventEmitter();
     }
     /**
      * Gets the number of queued requests waiting for a database connection
@@ -50,6 +51,7 @@ class Pool extends events_1.EventEmitter {
             if (idleConnection.idleTimeoutTimer) {
                 clearTimeout(idleConnection.idleTimeoutTimer);
             }
+            this.emit('idleConnectionActivated');
             return idleConnection;
         }
         const id = uuid_1.v4();
@@ -57,15 +59,21 @@ class Pool extends events_1.EventEmitter {
             this.connections.push(id);
             return await this.createConnection(id);
         }
+        this.emit('connectionRequestQueued');
         this.connectionQueue.push(id);
         let connectionTimeoutTimer;
         try {
             return await Promise.race([
                 new Promise((resolve) => {
-                    this.on(`connection_${id}`, resolve);
+                    this.connectionQueueEventEmitter.on(`connection_${id}`, (client) => {
+                        this.connectionQueueEventEmitter.removeAllListeners(`connection_${id}`);
+                        this.emit('connectionRequestDequeued');
+                        resolve(client);
+                    });
                 }),
                 new Promise((_, reject) => {
                     connectionTimeoutTimer = setTimeout(() => {
+                        this.connectionQueueEventEmitter.removeAllListeners(`connection_${id}`);
                         const index = this.connectionQueue.indexOf(id);
                         if (index > -1) {
                             this.connectionQueue.splice(index, 1);
@@ -122,13 +130,14 @@ class Pool extends events_1.EventEmitter {
             const id = this.connectionQueue.shift();
             // Return the connection to be used by a queued request
             if (id) {
-                this.emit(`connection_${id}`, client);
+                this.connectionQueueEventEmitter.emit(`connection_${id}`, client);
             }
             else {
                 client.idleTimeoutTimer = setTimeout(() => {
                     this.removeConnection(client);
                 }, this.options.idleTimeoutMillis);
                 this.idleConnections.push(client);
+                this.emit('connectionIdle');
             }
         };
         client.errorHandler = (err) => {
@@ -146,6 +155,7 @@ class Pool extends events_1.EventEmitter {
                     }, this.options.connectionTimeoutMillis);
                 }),
             ]);
+            this.emit('connectionAddedToPool');
         }
         catch (ex) {
             await client.end();
@@ -177,6 +187,7 @@ class Pool extends events_1.EventEmitter {
         client.end().catch((ex) => {
             this.emit('error', ex);
         });
+        this.emit('connectionRemovedFromPool');
     }
 }
 exports.Pool = Pool;

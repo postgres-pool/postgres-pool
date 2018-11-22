@@ -1,5 +1,6 @@
 import { EventEmitter } from 'events';
 import { Client, QueryResult } from 'pg';
+import { StrictEventEmitter } from 'strict-event-emitter-types';
 import { v4 } from 'uuid';
 
 export interface PoolOptionsBase {
@@ -36,12 +37,26 @@ export type PoolClient = Client & {
   errorHandler: (err: Error) => void;
 };
 
-export class Pool extends EventEmitter {
+interface PoolEvents {
+  connectionRequestQueued: () => void;
+  connectionRequestDequeued: () => void;
+  connectionAddedToPool: () => void;
+  connectionRemovedFromPool: () => void;
+  connectionIdle: () => void;
+  idleConnectionActivated: () => void;
+  error: (error: Error, client?: PoolClient) => void;
+}
+
+type PoolEmitter = StrictEventEmitter<EventEmitter, PoolEvents>;
+
+export class Pool extends (EventEmitter as { new(): PoolEmitter }) {
   protected options: PoolOptionsBase & (PoolOptionsExplicit | PoolOptionsImplicit);
-  protected connections: Array<string> = [];
+  // Internal event emitter used to handle queued connection requests
+  protected connectionQueueEventEmitter: EventEmitter;
+  protected connections: string[] = [];
   // Should self order by idle timeout ascending
-  protected idleConnections: Array<PoolClient> = [];
-  protected connectionQueue: Array<string> = [];
+  protected idleConnections: PoolClient[] = [];
+  protected connectionQueue: string[] = [];
   protected isEnding: boolean = false;
 
   constructor (options: PoolOptionsExplicit | PoolOptionsImplicit) {
@@ -58,26 +73,28 @@ export class Pool extends EventEmitter {
       ...defaultOptions,
       ...options,
     };
+
+    this.connectionQueueEventEmitter = new EventEmitter();
   }
 
   /**
    * Gets the number of queued requests waiting for a database connection
    */
-  get waitingCount() : number {
+  get waitingCount(): number {
     return this.connectionQueue.length;
   }
 
   /**
    * Gets the number of idle connections
    */
-  get idleCount() : number {
+  get idleCount(): number {
     return this.idleConnections.length;
   }
 
   /**
    * Gets the total number of connections in the pool
    */
-  get totalCount() : number {
+  get totalCount(): number {
     return this.connections.length;
   }
 
@@ -85,7 +102,7 @@ export class Pool extends EventEmitter {
    * Gets a client connection from the pool.
    * Note: You must call `.release()` when finished with the client connection object. That will release the connection back to the pool to be used by other requests.
    */
-  async connect() : Promise<PoolClient> {
+  public async connect(): Promise<PoolClient> {
     if (this.isEnding) {
       throw new Error('Cannot use pool after calling end() on the pool');
     }
@@ -96,6 +113,8 @@ export class Pool extends EventEmitter {
         clearTimeout(idleConnection.idleTimeoutTimer);
       }
 
+      this.emit('idleConnectionActivated');
+
       return idleConnection;
     }
 
@@ -104,26 +123,35 @@ export class Pool extends EventEmitter {
     if (this.connections.length < this.options.poolSize) {
       this.connections.push(id);
 
-      return await this.createConnection(id);
+      return await this._createConnection(id);
     }
 
+    this.emit('connectionRequestQueued');
     this.connectionQueue.push(id);
     let connectionTimeoutTimer;
     try {
-      return <PoolClient> await Promise.race([
+      return await Promise.race([
         new Promise((resolve) => {
-          this.on(`connection_${id}`, resolve);
+          this.connectionQueueEventEmitter.on(`connection_${id}`, (client: Client) => {
+            this.connectionQueueEventEmitter.removeAllListeners(`connection_${id}`);
+
+            this.emit('connectionRequestDequeued');
+            resolve(client);
+          });
         }),
         new Promise((_, reject) => {
           connectionTimeoutTimer = setTimeout(() => {
+            this.connectionQueueEventEmitter.removeAllListeners(`connection_${id}`);
+
             const index = this.connectionQueue.indexOf(id);
             if (index > -1) {
               this.connectionQueue.splice(index, 1);
             }
+
             reject(new Error('Timed out while waiting for available connection in pool'));
-          }, this.options.waitForAvailableConnectionTimeoutMillis);
+          },                                  this.options.waitForAvailableConnectionTimeoutMillis);
         }),
-      ]);
+      ]) as PoolClient;
     } finally {
       if (connectionTimeoutTimer) {
         clearTimeout(connectionTimeoutTimer);
@@ -136,7 +164,7 @@ export class Pool extends EventEmitter {
    * @param {string} text
    * @param {Array} values
    */
-  async query(text: string, values?: Array<any>): Promise<QueryResult> {
+  public async query(text: string, values?: any[]): Promise<QueryResult> {
     const connection = await this.connect();
     try {
       return await connection.query(text, values);
@@ -148,11 +176,11 @@ export class Pool extends EventEmitter {
   /**
    * Drains the pool of all active client connections. Used to shut down the pool down cleanly
    */
-  async end() {
+  public async end() {
     this.isEnding = true;
 
     await Promise.all(this.idleConnections.map((connection) => {
-      return this.removeConnection(connection);
+      return this._removeConnection(connection);
     }));
   }
 
@@ -160,15 +188,15 @@ export class Pool extends EventEmitter {
    * Creates a new client connection to add to the pool
    * @param {string} connectionId
    */
-  private async createConnection(connectionId: string) : Promise<PoolClient> {
-    const client = <PoolClient> new Client(this.options);
+  private async _createConnection(connectionId: string): Promise<PoolClient> {
+    const client = new Client(this.options) as PoolClient;
     client.uniqueId = connectionId;
     /**
      * Releases the client connection back to the pool, to be used by another query.
      */
     client.release = () => {
       if (this.isEnding) {
-        this.removeConnection(client);
+        this._removeConnection(client);
         return;
       }
 
@@ -176,18 +204,19 @@ export class Pool extends EventEmitter {
 
       // Return the connection to be used by a queued request
       if (id) {
-        this.emit(`connection_${id}`, client);
+        this.connectionQueueEventEmitter.emit(`connection_${id}`, client);
       } else {
         client.idleTimeoutTimer = setTimeout(() => {
-          this.removeConnection(client);
-        }, this.options.idleTimeoutMillis);
+          this._removeConnection(client);
+        },                                   this.options.idleTimeoutMillis);
 
         this.idleConnections.push(client);
+        this.emit('connectionIdle');
       }
     };
 
     client.errorHandler = (err: Error) => {
-      this.removeConnection(client);
+      this._removeConnection(client);
       this.emit('error', err, client);
     };
 
@@ -199,9 +228,11 @@ export class Pool extends EventEmitter {
         new Promise((_, reject) => {
           connectionTimeoutTimer = setTimeout(() => {
             reject(new Error('Timed out trying to connect to postgres'));
-          }, this.options.connectionTimeoutMillis);
+          },                                  this.options.connectionTimeoutMillis);
         }),
       ]);
+
+      this.emit('connectionAddedToPool');
     } catch (ex) {
       await client.end();
 
@@ -219,7 +250,7 @@ export class Pool extends EventEmitter {
    * Removes the client connection from the pool and tries to gracefully shut it down
    * @param {PoolClient} client
    */
-  private removeConnection(client: PoolClient) {
+  private _removeConnection(client: PoolClient) {
     client.removeListener('error', client.errorHandler);
 
     const idleConnectionIndex = this.idleConnections.findIndex((connection) => {
@@ -237,5 +268,7 @@ export class Pool extends EventEmitter {
     client.end().catch((ex) => {
       this.emit('error', ex);
     });
+
+    this.emit('connectionRemovedFromPool');
   }
 }
