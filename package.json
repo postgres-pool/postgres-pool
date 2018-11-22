@@ -1,11 +1,12 @@
 {
   "name": "postgres-pool",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Connection pool implementation for node-pg",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
+    "prepublishOnly": "npm run lint && npm run test",
     "pretest": "npm run build",
     "test": "mocha --reporter spec",
     "lint": "tslint --fix -p tsconfig.lint.json -c tslint.json -t stylish"

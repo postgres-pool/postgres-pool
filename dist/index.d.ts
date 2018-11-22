@@ -44,7 +44,7 @@ interface PoolEvents {
 declare const Pool_base: new () => StrictEventEmitter<EventEmitter, PoolEvents, PoolEvents, "addEventListener" | "removeEventListener", "removeListener" | "on" | "addListener" | "once" | "emit">;
 export declare class Pool extends Pool_base {
     protected options: PoolOptionsBase & (PoolOptionsExplicit | PoolOptionsImplicit);
-    protected connectionEventEmitter: EventEmitter;
+    protected connectionQueueEventEmitter: EventEmitter;
     protected connections: string[];
     protected idleConnections: PoolClient[];
     protected connectionQueue: string[];
@@ -81,11 +81,11 @@ export declare class Pool extends Pool_base {
      * Creates a new client connection to add to the pool
      * @param {string} connectionId
      */
-    private createConnection;
+    private _createConnection;
     /**
      * Removes the client connection from the pool and tries to gracefully shut it down
      * @param {PoolClient} client
      */
-    private removeConnection;
+    private _removeConnection;
 }
 export {};

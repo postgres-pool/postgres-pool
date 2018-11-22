@@ -1,3 +1,8 @@
+### 1.0.5
+
+  * Rebuild with lint updates
+  * Fix query test to correctly stub _createConnection()
+
 ### 1.0.4
 
   * Strongly type pool events

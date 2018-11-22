@@ -9,7 +9,7 @@ const sinon = require('sinon');
 const { Client } = require('pg');
 const { Pool } = require('../dist/index.js');
 
-describe('connectionStrings', () => {
+describe('#constructor()', () => {
   it('should pass connectionString to client', async () => {
     const stub = sinon.stub(Client.prototype, 'connect').returns(true);
 
@@ -25,7 +25,7 @@ describe('connectionStrings', () => {
   });
 });
 
-describe('createConnection', () => {
+describe('#connect()', () => {
   it('should throw if connecting exceeds connectionTimeoutMillis', async () => {
     const connectStub = sinon.stub(Client.prototype, 'connect').returns(new Promise((resolve) => {
       setTimeout(resolve, 100);
@@ -72,7 +72,7 @@ describe('createConnection', () => {
   });
 });
 
-describe('query', () => {
+describe('#query()', () => {
   it('should get a connection from the pool and release the connection after the query', async () => {
     const pool = new Pool({
       connectionString: 'postgres://foo:bar@baz:1234/xur',
@@ -138,7 +138,7 @@ describe('query', () => {
       query() {},
       release() {},
     };
-    const createConnectionStub = sinon.stub(pool, 'createConnection').returns(connection);
+    const createConnectionStub = sinon.stub(pool, '_createConnection').returns(connection);
     const queryStub = sinon.stub(connection, 'query').returns(expectedResult);
     const releaseStub = sinon.stub(connection, 'release').returns(true);
 

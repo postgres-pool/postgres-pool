@@ -57,7 +57,7 @@ class Pool extends events_1.EventEmitter {
         const id = uuid_1.v4();
         if (this.connections.length < this.options.poolSize) {
             this.connections.push(id);
-            return await this.createConnection(id);
+            return await this._createConnection(id);
         }
         this.emit('connectionRequestQueued');
         this.connectionQueue.push(id);
@@ -109,14 +109,14 @@ class Pool extends events_1.EventEmitter {
     async end() {
         this.isEnding = true;
         await Promise.all(this.idleConnections.map((connection) => {
-            return this.removeConnection(connection);
+            return this._removeConnection(connection);
         }));
     }
     /**
      * Creates a new client connection to add to the pool
      * @param {string} connectionId
      */
-    async createConnection(connectionId) {
+    async _createConnection(connectionId) {
         const client = new pg_1.Client(this.options);
         client.uniqueId = connectionId;
         /**
@@ -124,7 +124,7 @@ class Pool extends events_1.EventEmitter {
          */
         client.release = () => {
             if (this.isEnding) {
-                this.removeConnection(client);
+                this._removeConnection(client);
                 return;
             }
             const id = this.connectionQueue.shift();
@@ -134,14 +134,14 @@ class Pool extends events_1.EventEmitter {
             }
             else {
                 client.idleTimeoutTimer = setTimeout(() => {
-                    this.removeConnection(client);
+                    this._removeConnection(client);
                 }, this.options.idleTimeoutMillis);
                 this.idleConnections.push(client);
                 this.emit('connectionIdle');
             }
         };
         client.errorHandler = (err) => {
-            this.removeConnection(client);
+            this._removeConnection(client);
             this.emit('error', err, client);
         };
         client.on('error', client.errorHandler);
@@ -172,7 +172,7 @@ class Pool extends events_1.EventEmitter {
      * Removes the client connection from the pool and tries to gracefully shut it down
      * @param {PoolClient} client
      */
-    removeConnection(client) {
+    _removeConnection(client) {
         client.removeListener('error', client.errorHandler);
         const idleConnectionIndex = this.idleConnections.findIndex((connection) => {
             return connection.uniqueId === client.uniqueId;
