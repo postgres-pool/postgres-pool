@@ -184,11 +184,11 @@ class Pool extends events_1.EventEmitter {
         const connectionIndex = this.connections.indexOf(client.uniqueId);
         if (connectionIndex > -1) {
             this.connections.splice(connectionIndex, 1);
-            this.emit('connectionRemovedFromPool');
         }
         client.end().catch((ex) => {
             this.emit('error', ex);
         });
+        this.emit('connectionRemovedFromPool');
     }
 }
 exports.Pool = Pool;

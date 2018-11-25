@@ -1,3 +1,7 @@
+### 1.0.7
+
+  * Restore firing connectionRemovedFromPool event when _removeConnection() is called
+
 ### 1.0.6
 
   * Fix connectionRemovedFromPool to only fire when a valid connection is removed from the pool, not each time _removeConnection() is called.
