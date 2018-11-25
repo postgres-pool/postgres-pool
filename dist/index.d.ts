@@ -38,6 +38,7 @@ interface PoolEvents {
     connectionAddedToPool: () => void;
     connectionRemovedFromPool: () => void;
     connectionIdle: () => void;
+    connectionRemovedFromIdlePool: () => void;
     idleConnectionActivated: () => void;
     error: (error: Error, client?: PoolClient) => void;
 }

@@ -1,3 +1,8 @@
+### 1.0.6
+
+  * Fix connectionRemovedFromPool to only fire when a valid connection is removed from the pool, not each time _removeConnection() is called.
+  * Add event: connectionRemovedFromIdlePool
+
 ### 1.0.5
 
   * Rebuild with lint updates

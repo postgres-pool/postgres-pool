@@ -43,6 +43,7 @@ interface PoolEvents {
   connectionAddedToPool: () => void;
   connectionRemovedFromPool: () => void;
   connectionIdle: () => void;
+  connectionRemovedFromIdlePool: () => void;
   idleConnectionActivated: () => void;
   error: (error: Error, client?: PoolClient) => void;
 }
@@ -258,17 +259,17 @@ export class Pool extends (EventEmitter as { new(): PoolEmitter }) {
     });
     if (idleConnectionIndex > -1) {
       this.idleConnections.splice(idleConnectionIndex, 1);
+      this.emit('connectionRemovedFromIdlePool');
     }
 
     const connectionIndex = this.connections.indexOf(client.uniqueId);
     if (connectionIndex > -1) {
       this.connections.splice(connectionIndex, 1);
+      this.emit('connectionRemovedFromPool');
     }
 
     client.end().catch((ex) => {
       this.emit('error', ex);
     });
-
-    this.emit('connectionRemovedFromPool');
   }
 }
