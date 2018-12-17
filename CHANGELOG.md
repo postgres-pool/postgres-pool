@@ -1,3 +1,7 @@
+### 1.1.0
+
+  * Add reconnectOnReadOnlyTransactionError option for connections in pool
+
 ### 1.0.7
 
   * Restore firing connectionRemovedFromPool event when _removeConnection() is called

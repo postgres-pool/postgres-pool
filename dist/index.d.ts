@@ -7,6 +7,7 @@ export interface PoolOptionsBase {
     idleTimeoutMillis: number;
     waitForAvailableConnectionTimeoutMillis: number;
     connectionTimeoutMillis: number;
+    reconnectOnReadOnlyTransactionError: boolean;
 }
 export interface PoolOptionsExplicit {
     host: string;
@@ -18,6 +19,7 @@ export interface PoolOptionsExplicit {
     idleTimeoutMillis?: number;
     waitForAvailableConnectionTimeoutMillis?: number;
     connectionTimeoutMillis?: number;
+    reconnectOnReadOnlyTransactionError?: boolean;
 }
 export interface PoolOptionsImplicit {
     connectionString: string;
@@ -25,11 +27,12 @@ export interface PoolOptionsImplicit {
     idleTimeoutMillis?: number;
     waitForAvailableConnectionTimeoutMillis?: number;
     connectionTimeoutMillis?: number;
+    reconnectOnReadOnlyTransactionError?: boolean;
 }
 export declare type PoolClient = Client & {
     uniqueId: string;
     idleTimeoutTimer?: NodeJS.Timer;
-    release: () => void;
+    release: (removeConnection?: boolean) => void;
     errorHandler: (err: Error) => void;
 };
 interface PoolEvents {
@@ -40,6 +43,7 @@ interface PoolEvents {
     connectionIdle: () => void;
     connectionRemovedFromIdlePool: () => void;
     idleConnectionActivated: () => void;
+    queryDeniedForReadOnlyTransaction: () => void;
     error: (error: Error, client?: PoolClient) => void;
 }
 declare const Pool_base: new () => StrictEventEmitter<EventEmitter, PoolEvents, PoolEvents, "addEventListener" | "removeEventListener", "removeListener" | "on" | "addListener" | "once" | "emit">;
@@ -77,7 +81,7 @@ export declare class Pool extends Pool_base {
     /**
      * Drains the pool of all active client connections. Used to shut down the pool down cleanly
      */
-    end(): Promise<void>;
+    end(): void;
     /**
      * Creates a new client connection to add to the pool
      * @param {string} connectionId

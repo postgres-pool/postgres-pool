@@ -16,6 +16,7 @@ class Pool extends events_1.EventEmitter {
             idleTimeoutMillis: 10000,
             waitForAvailableConnectionTimeoutMillis: 90000,
             connectionTimeoutMillis: 30000,
+            reconnectOnReadOnlyTransactionError: false,
         };
         this.options = Object.assign({}, defaultOptions, options);
         this.connectionQueueEventEmitter = new events_1.EventEmitter();
@@ -96,21 +97,42 @@ class Pool extends events_1.EventEmitter {
      */
     async query(text, values) {
         const connection = await this.connect();
+        let removeConnection = false;
         try {
             return await connection.query(text, values);
         }
+        catch (ex) {
+            if (!this.options.reconnectOnReadOnlyTransactionError || !/cannot execute [\s\w]+ in a read-only transaction/igu.test(ex.message)) {
+                throw ex;
+            }
+            removeConnection = true;
+        }
         finally {
-            connection.release();
+            connection.release(removeConnection);
+        }
+        // If we get here, that means that the query was attempted with a read-only connection.
+        // This can happen when the cluster fails over to a read-replica
+        this.emit('queryDeniedForReadOnlyTransaction');
+        // Clear all idle connections and try the query again with a fresh connection
+        for (const idleConnection of this.idleConnections) {
+            this._removeConnection(idleConnection);
+        }
+        const connection2 = await this.connect();
+        try {
+            return await connection2.query(text, values);
+        }
+        finally {
+            connection2.release();
         }
     }
     /**
      * Drains the pool of all active client connections. Used to shut down the pool down cleanly
      */
-    async end() {
+    end() {
         this.isEnding = true;
-        await Promise.all(this.idleConnections.map((connection) => {
-            return this._removeConnection(connection);
-        }));
+        for (const idleConnection of this.idleConnections) {
+            this._removeConnection(idleConnection);
+        }
     }
     /**
      * Creates a new client connection to add to the pool
@@ -122,8 +144,8 @@ class Pool extends events_1.EventEmitter {
         /**
          * Releases the client connection back to the pool, to be used by another query.
          */
-        client.release = () => {
-            if (this.isEnding) {
+        client.release = (removeConnection = false) => {
+            if (this.isEnding || removeConnection) {
                 this._removeConnection(client);
                 return;
             }
@@ -174,6 +196,9 @@ class Pool extends events_1.EventEmitter {
      */
     _removeConnection(client) {
         client.removeListener('error', client.errorHandler);
+        if (client.idleTimeoutTimer) {
+            clearTimeout(client.idleTimeoutTimer);
+        }
         const idleConnectionIndex = this.idleConnections.findIndex((connection) => {
             return connection.uniqueId === client.uniqueId;
         });

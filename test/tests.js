@@ -158,4 +158,119 @@ describe('#query()', () => {
 
     pool.connections.length.should.equal(poolSize);
   });
+  it('should not try connecting again if reconnectOnReadOnlyTransactionError=false and "cannot execute X in a read-only transaction" is thrown', async () => {
+    const pool = new Pool({
+      connectionString: 'postgres://foo:bar@baz:1234/xur',
+    });
+    const connection = {
+      query() {},
+      release() {},
+    };
+    const connectStub = sinon.stub(pool, 'connect').returns(connection);
+    const queryStub = sinon.stub(connection, 'query').throws(new Error('cannot execute UPDATE in a read-only transaction'));
+    const releaseStub = sinon.stub(connection, 'release').returns(true);
+
+    try {
+      await pool.query('foo');
+    } catch (ex) {
+      // Ignore...
+    }
+
+    connectStub.restore();
+    queryStub.restore();
+    releaseStub.restore();
+
+    connectStub.calledOnce.should.equal(true);
+    queryStub.calledOnce.should.equal(true);
+    releaseStub.calledOnce.should.equal(true);
+  });
+  it('should not try connecting again if reconnectOnReadOnlyTransactionError=true and non-read-only transaction error is thrown', async () => {
+    const pool = new Pool({
+      connectionString: 'postgres://foo:bar@baz:1234/xur',
+      reconnectOnReadOnlyTransactionError: true,
+    });
+    const connection = {
+      query() {},
+      release() {},
+    };
+    const connectStub = sinon.stub(pool, 'connect').returns(connection);
+    const queryStub = sinon.stub(connection, 'query').throws(new Error('Some other error'));
+    const releaseStub = sinon.stub(connection, 'release').returns(true);
+
+    try {
+      await pool.query('foo');
+    } catch (ex) {
+      // Ignore...
+    }
+
+    connectStub.restore();
+    queryStub.restore();
+    releaseStub.restore();
+
+    connectStub.calledOnce.should.equal(true);
+    queryStub.calledOnce.should.equal(true);
+    releaseStub.calledOnce.should.equal(true);
+  });
+  it('should not try connecting again if reconnectOnReadOnlyTransactionError=true and no error is thrown', async () => {
+    const pool = new Pool({
+      connectionString: 'postgres://foo:bar@baz:1234/xur',
+      reconnectOnReadOnlyTransactionError: true,
+    });
+    const returnResult = {
+      rows: [
+        42,
+      ],
+      rowCount: 1,
+    };
+    const connection = {
+      query() {},
+      release() {},
+    };
+    const connectStub = sinon.stub(pool, 'connect').returns(connection);
+    const queryStub = sinon.stub(connection, 'query').returns(returnResult);
+    const releaseStub = sinon.stub(connection, 'release').returns(true);
+
+    const result = await pool.query('foo');
+    result.should.deep.equal(returnResult);
+
+    connectStub.restore();
+    queryStub.restore();
+    releaseStub.restore();
+
+    connectStub.calledOnce.should.equal(true);
+    queryStub.calledOnce.should.equal(true);
+    releaseStub.calledOnce.should.equal(true);
+  });
+  it('should try connecting again if reconnectOnReadOnlyTransactionError=true and "cannot execute X in a read-only transaction" is thrown', async () => {
+    const pool = new Pool({
+      connectionString: 'postgres://foo:bar@baz:1234/xur',
+      reconnectOnReadOnlyTransactionError: true,
+    });
+    const returnResult = {
+      rows: [
+        42,
+      ],
+      rowCount: 1,
+    };
+    const connection = {
+      query() {},
+      release() {},
+    };
+    const connectStub = sinon.stub(pool, 'connect').returns(connection);
+    const queryStub = sinon.stub(connection, 'query');
+    queryStub.onCall(0).throws(new Error('cannot execute CREATE in a read-only transaction'));
+    queryStub.onCall(1).returns(returnResult);
+    const releaseStub = sinon.stub(connection, 'release').returns(true);
+
+    const result = await pool.query('foo');
+    result.should.deep.equal(returnResult);
+
+    connectStub.restore();
+    queryStub.restore();
+    releaseStub.restore();
+
+    connectStub.calledTwice.should.equal(true);
+    queryStub.calledTwice.should.equal(true);
+    releaseStub.calledTwice.should.equal(true);
+  });
 });

@@ -8,6 +8,7 @@ export interface PoolOptionsBase {
   idleTimeoutMillis: number;
   waitForAvailableConnectionTimeoutMillis: number;
   connectionTimeoutMillis: number;
+  reconnectOnReadOnlyTransactionError: boolean;
 }
 
 export interface PoolOptionsExplicit {
@@ -20,6 +21,7 @@ export interface PoolOptionsExplicit {
   idleTimeoutMillis?: number;
   waitForAvailableConnectionTimeoutMillis?: number;
   connectionTimeoutMillis?: number;
+  reconnectOnReadOnlyTransactionError?: boolean;
 }
 
 export interface PoolOptionsImplicit {
@@ -28,12 +30,13 @@ export interface PoolOptionsImplicit {
   idleTimeoutMillis?: number;
   waitForAvailableConnectionTimeoutMillis?: number;
   connectionTimeoutMillis?: number;
+  reconnectOnReadOnlyTransactionError?: boolean;
 }
 
 export type PoolClient = Client & {
   uniqueId: string;
   idleTimeoutTimer?: NodeJS.Timer;
-  release: () => void;
+  release: (removeConnection?: boolean) => void;
   errorHandler: (err: Error) => void;
 };
 
@@ -45,6 +48,7 @@ interface PoolEvents {
   connectionIdle: () => void;
   connectionRemovedFromIdlePool: () => void;
   idleConnectionActivated: () => void;
+  queryDeniedForReadOnlyTransaction: () => void;
   error: (error: Error, client?: PoolClient) => void;
 }
 
@@ -68,6 +72,7 @@ export class Pool extends (EventEmitter as { new(): PoolEmitter }) {
       idleTimeoutMillis: 10000,
       waitForAvailableConnectionTimeoutMillis: 90000,
       connectionTimeoutMillis: 30000,
+      reconnectOnReadOnlyTransactionError: false,
     };
 
     this.options = {
@@ -150,7 +155,7 @@ export class Pool extends (EventEmitter as { new(): PoolEmitter }) {
             }
 
             reject(new Error('Timed out while waiting for available connection in pool'));
-          },                                  this.options.waitForAvailableConnectionTimeoutMillis);
+          }, this.options.waitForAvailableConnectionTimeoutMillis);
         }),
       ]) as PoolClient;
     } finally {
@@ -167,22 +172,45 @@ export class Pool extends (EventEmitter as { new(): PoolEmitter }) {
    */
   public async query(text: string, values?: any[]): Promise<QueryResult> {
     const connection = await this.connect();
+    let removeConnection = false;
     try {
       return await connection.query(text, values);
+    } catch (ex) {
+      if (!this.options.reconnectOnReadOnlyTransactionError || !/cannot execute [\s\w]+ in a read-only transaction/igu.test(ex.message)) {
+        throw ex;
+      }
+
+      removeConnection = true;
     } finally {
-      connection.release();
+      connection.release(removeConnection);
+    }
+
+    // If we get here, that means that the query was attempted with a read-only connection.
+    // This can happen when the cluster fails over to a read-replica
+    this.emit('queryDeniedForReadOnlyTransaction');
+
+    // Clear all idle connections and try the query again with a fresh connection
+    for (const idleConnection of this.idleConnections) {
+      this._removeConnection(idleConnection);
+    }
+
+    const connection2 = await this.connect();
+    try {
+      return await connection2.query(text, values);
+    } finally {
+      connection2.release();
     }
   }
 
   /**
    * Drains the pool of all active client connections. Used to shut down the pool down cleanly
    */
-  public async end() {
+  public end() {
     this.isEnding = true;
 
-    await Promise.all(this.idleConnections.map((connection) => {
-      return this._removeConnection(connection);
-    }));
+    for (const idleConnection of this.idleConnections) {
+      this._removeConnection(idleConnection);
+    }
   }
 
   /**
@@ -195,8 +223,8 @@ export class Pool extends (EventEmitter as { new(): PoolEmitter }) {
     /**
      * Releases the client connection back to the pool, to be used by another query.
      */
-    client.release = () => {
-      if (this.isEnding) {
+    client.release = (removeConnection: boolean = false) => {
+      if (this.isEnding || removeConnection) {
         this._removeConnection(client);
         return;
       }
@@ -209,7 +237,7 @@ export class Pool extends (EventEmitter as { new(): PoolEmitter }) {
       } else {
         client.idleTimeoutTimer = setTimeout(() => {
           this._removeConnection(client);
-        },                                   this.options.idleTimeoutMillis);
+        }, this.options.idleTimeoutMillis);
 
         this.idleConnections.push(client);
         this.emit('connectionIdle');
@@ -229,7 +257,7 @@ export class Pool extends (EventEmitter as { new(): PoolEmitter }) {
         new Promise((_, reject) => {
           connectionTimeoutTimer = setTimeout(() => {
             reject(new Error('Timed out trying to connect to postgres'));
-          },                                  this.options.connectionTimeoutMillis);
+          }, this.options.connectionTimeoutMillis);
         }),
       ]);
 
@@ -253,6 +281,10 @@ export class Pool extends (EventEmitter as { new(): PoolEmitter }) {
    */
   private _removeConnection(client: PoolClient) {
     client.removeListener('error', client.errorHandler);
+
+    if (client.idleTimeoutTimer) {
+      clearTimeout(client.idleTimeoutTimer);
+    }
 
     const idleConnectionIndex = this.idleConnections.findIndex((connection) => {
       return connection.uniqueId === client.uniqueId;
