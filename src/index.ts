@@ -4,11 +4,54 @@ import { StrictEventEmitter } from 'strict-event-emitter-types';
 import { v4 } from 'uuid';
 
 export interface PoolOptionsBase {
+  /**
+   * Number of connections to store in the pool
+   */
   poolSize: number;
+  /**
+   * Milliseconds until an idle connection is closed and removed from the active connection pool
+   */
   idleTimeoutMillis: number;
+  /**
+   * Milliseconds to wait for an available connection before throwing an error that no connection is available
+   */
   waitForAvailableConnectionTimeoutMillis: number;
+  /**
+   * Milliseconds to wait to connect to postgres
+   */
   connectionTimeoutMillis: number;
+  /**
+   * If connect should be retried when the database throws "the database system is starting up"
+   * NOTE: This typically happens during a fail over scenario when a read-replica is being promoted to master
+   */
+  reconnectOnDatabaseIsStartingError: boolean;
+  /**
+   * Milliseconds to wait between retry connection attempts while the database is starting up. Allows you to throttle
+   * how many retries should happen until databaseStartupTimeoutMillis expires. A value of 0 will
+   * retry the query immediately.
+   */
+  waitForDatabaseStartupMillis: number;
+  /**
+   * If connection attempts continually return "the database system is starting up", this is the total number of milliseconds
+   * to wait until an error is thrown.
+   */
+  databaseStartupTimeoutMillis: number;
+  /**
+   * If the query should be retried when the database throws "cannot execute X in a read-only transaction"
+   * NOTE: This typically happens during a fail over scenario when a read-replica is being promoted to master
+   */
   reconnectOnReadOnlyTransactionError: boolean;
+  /**
+   * Milliseconds to wait between retry queries while the connection is marked as read-only. Allows you to throttle
+   * how many retries should happen until readOnlyTransactionReconnectTimeoutMillis expires. A value of 0 will
+   * try reconnecting immediately.
+   */
+  waitForReconnectReadOnlyTransactionMillis: number;
+  /**
+   * If queries continually return "cannot execute X in a read-only transaction", this is the total number of
+   * milliseconds to wait until an error is thrown.
+   */
+  readOnlyTransactionReconnectTimeoutMillis: number;
 }
 
 export interface PoolOptionsExplicit {
@@ -21,7 +64,12 @@ export interface PoolOptionsExplicit {
   idleTimeoutMillis?: number;
   waitForAvailableConnectionTimeoutMillis?: number;
   connectionTimeoutMillis?: number;
+  reconnectOnDatabaseIsStartingError?: boolean;
+  waitForDatabaseStartupMillis?: number;
+  databaseStartupTimeoutMillis?: number;
   reconnectOnReadOnlyTransactionError?: boolean;
+  waitForReconnectReadOnlyTransactionMillis?: number;
+  readOnlyTransactionReconnectTimeoutMillis?: number;
 }
 
 export interface PoolOptionsImplicit {
@@ -30,7 +78,12 @@ export interface PoolOptionsImplicit {
   idleTimeoutMillis?: number;
   waitForAvailableConnectionTimeoutMillis?: number;
   connectionTimeoutMillis?: number;
+  reconnectOnDatabaseIsStartingError?: boolean;
+  waitForDatabaseStartupMillis?: number;
+  databaseStartupTimeoutMillis?: number;
   reconnectOnReadOnlyTransactionError?: boolean;
+  waitForReconnectReadOnlyTransactionMillis?: number;
+  readOnlyTransactionReconnectTimeoutMillis?: number;
 }
 
 export type PoolClient = Client & {
@@ -49,40 +102,13 @@ interface PoolEvents {
   connectionRemovedFromIdlePool: () => void;
   idleConnectionActivated: () => void;
   queryDeniedForReadOnlyTransaction: () => void;
+  waitingForDatabaseToStart: () => void;
   error: (error: Error, client?: PoolClient) => void;
 }
 
 type PoolEmitter = StrictEventEmitter<EventEmitter, PoolEvents>;
 
 export class Pool extends (EventEmitter as { new(): PoolEmitter }) {
-  protected options: PoolOptionsBase & (PoolOptionsExplicit | PoolOptionsImplicit);
-  // Internal event emitter used to handle queued connection requests
-  protected connectionQueueEventEmitter: EventEmitter;
-  protected connections: string[] = [];
-  // Should self order by idle timeout ascending
-  protected idleConnections: PoolClient[] = [];
-  protected connectionQueue: string[] = [];
-  protected isEnding: boolean = false;
-
-  constructor (options: PoolOptionsExplicit | PoolOptionsImplicit) {
-    super();
-
-    const defaultOptions: PoolOptionsBase = {
-      poolSize: 10,
-      idleTimeoutMillis: 10000,
-      waitForAvailableConnectionTimeoutMillis: 90000,
-      connectionTimeoutMillis: 30000,
-      reconnectOnReadOnlyTransactionError: false,
-    };
-
-    this.options = {
-      ...defaultOptions,
-      ...options,
-    };
-
-    this.connectionQueueEventEmitter = new EventEmitter();
-  }
-
   /**
    * Gets the number of queued requests waiting for a database connection
    */
@@ -102,6 +128,34 @@ export class Pool extends (EventEmitter as { new(): PoolEmitter }) {
    */
   get totalCount(): number {
     return this.connections.length;
+  }
+  protected options: PoolOptionsBase & (PoolOptionsExplicit | PoolOptionsImplicit);
+  // Internal event emitter used to handle queued connection requests
+  protected connectionQueueEventEmitter: EventEmitter;
+  protected connections: string[] = [];
+  // Should self order by idle timeout ascending
+  protected idleConnections: PoolClient[] = [];
+  protected connectionQueue: string[] = [];
+  protected isEnding: boolean = false;
+
+  constructor (options: PoolOptionsExplicit | PoolOptionsImplicit) {
+    super();
+
+    const defaultOptions: PoolOptionsBase = {
+      poolSize: 10,
+      idleTimeoutMillis: 10000,
+      waitForAvailableConnectionTimeoutMillis: 90000,
+      connectionTimeoutMillis: 30000,
+      reconnectOnDatabaseIsStartingError: true,
+      waitForDatabaseStartupMillis: 0,
+      databaseStartupTimeoutMillis: 90000,
+      reconnectOnReadOnlyTransactionError: true,
+      waitForReconnectReadOnlyTransactionMillis: 0,
+      readOnlyTransactionReconnectTimeoutMillis: 90000,
+    };
+
+    this.options = Object.assign({}, defaultOptions, options);
+    this.connectionQueueEventEmitter = new EventEmitter();
   }
 
   /**
@@ -171,35 +225,7 @@ export class Pool extends (EventEmitter as { new(): PoolEmitter }) {
    * @param {Array} values
    */
   public async query(text: string, values?: any[]): Promise<QueryResult> {
-    const connection = await this.connect();
-    let removeConnection = false;
-    try {
-      return await connection.query(text, values);
-    } catch (ex) {
-      if (!this.options.reconnectOnReadOnlyTransactionError || !/cannot execute [\s\w]+ in a read-only transaction/igu.test(ex.message)) {
-        throw ex;
-      }
-
-      removeConnection = true;
-    } finally {
-      connection.release(removeConnection);
-    }
-
-    // If we get here, that means that the query was attempted with a read-only connection.
-    // This can happen when the cluster fails over to a read-replica
-    this.emit('queryDeniedForReadOnlyTransaction');
-
-    // Clear all idle connections and try the query again with a fresh connection
-    for (const idleConnection of this.idleConnections) {
-      this._removeConnection(idleConnection);
-    }
-
-    const connection2 = await this.connect();
-    try {
-      return await connection2.query(text, values);
-    } finally {
-      connection2.release();
-    }
+    return this._query(text, values);
   }
 
   /**
@@ -213,11 +239,62 @@ export class Pool extends (EventEmitter as { new(): PoolEmitter }) {
     }
   }
 
+  private async _query(text: string, values?: any[], readOnlyStartTime?: [number, number]): Promise<QueryResult> {
+    const connection = await this.connect();
+    let removeConnection = false;
+    let timeoutError: Error | undefined;
+    try {
+      return await connection.query(text, values);
+    } catch (ex) {
+      if (this.options.reconnectOnReadOnlyTransactionError && /cannot execute [\s\w]+ in a read-only transaction/igu.test(ex.message)) {
+        timeoutError = ex;
+        removeConnection = true;
+      } else {
+        throw ex;
+      }
+    } finally {
+      connection.release(removeConnection);
+    }
+
+    // If we get here, that means that the query was attempted with a read-only connection.
+    // This can happen when the cluster fails over to a read-replica
+    this.emit('queryDeniedForReadOnlyTransaction');
+
+    // Clear all idle connections and try the query again with a fresh connection
+    for (const idleConnection of this.idleConnections) {
+      // tslint:disable-next-line:no-parameter-reassignment
+      this._removeConnection(idleConnection);
+    }
+
+    if (!readOnlyStartTime) {
+      // tslint:disable-next-line:no-parameter-reassignment
+      readOnlyStartTime = process.hrtime();
+    }
+
+    if (this.options.waitForReconnectReadOnlyTransactionMillis > 0) {
+      await new Promise((resolve) => {
+        setTimeout(() => {
+          resolve();
+        }, this.options.waitForReconnectReadOnlyTransactionMillis);
+      });
+    }
+
+    const diff = process.hrtime(readOnlyStartTime);
+    const timeSinceLastRun = Number(((diff[0] * 1e3) + (diff[1] * 1e-6)).toFixed(3));
+
+    if (timeSinceLastRun > this.options.readOnlyTransactionReconnectTimeoutMillis) {
+      throw timeoutError;
+    }
+
+    return await this._query(text, values, readOnlyStartTime);
+  }
+
   /**
    * Creates a new client connection to add to the pool
    * @param {string} connectionId
+   * @param {[number,number]} [databaseStartupStartTime] - hrtime when the db was first listed as starting up
    */
-  private async _createConnection(connectionId: string): Promise<PoolClient> {
+  private async _createConnection(connectionId: string, databaseStartupStartTime?: [number, number]): Promise<PoolClient> {
     const client = new Client(this.options) as PoolClient;
     client.uniqueId = connectionId;
     /**
@@ -234,13 +311,15 @@ export class Pool extends (EventEmitter as { new(): PoolEmitter }) {
       // Return the connection to be used by a queued request
       if (id) {
         this.connectionQueueEventEmitter.emit(`connection_${id}`, client);
-      } else {
+      } else if (this.options.idleTimeoutMillis > 0) {
         client.idleTimeoutTimer = setTimeout(() => {
           this._removeConnection(client);
         }, this.options.idleTimeoutMillis);
 
         this.idleConnections.push(client);
         this.emit('connectionIdle');
+      } else {
+        this._removeConnection(client);
       }
     };
 
@@ -263,9 +342,35 @@ export class Pool extends (EventEmitter as { new(): PoolEmitter }) {
 
       this.emit('connectionAddedToPool');
     } catch (ex) {
-      await client.end();
+      if (this.options.reconnectOnDatabaseIsStartingError && /the database system is starting up/igu.test(ex.message)) {
+        this.emit('waitingForDatabaseToStart');
 
-      throw ex;
+        if (!databaseStartupStartTime) {
+          // tslint:disable-next-line:no-parameter-reassignment
+          databaseStartupStartTime = process.hrtime();
+        }
+
+        if (this.options.waitForDatabaseStartupMillis > 0) {
+          await new Promise((resolve) => {
+            setTimeout(() => {
+              resolve();
+            }, this.options.waitForDatabaseStartupMillis);
+          });
+        }
+
+        const diff = process.hrtime(databaseStartupStartTime);
+        const timeSinceFirstConnectAttempt = Number(((diff[0] * 1e3) + (diff[1] * 1e-6)).toFixed(3));
+
+        if (timeSinceFirstConnectAttempt > this.options.databaseStartupTimeoutMillis) {
+          throw ex;
+        }
+
+        return await this._createConnection(connectionId, databaseStartupStartTime);
+      } else {
+        await client.end();
+
+        throw ex;
+      }
     } finally {
       if (connectionTimeoutTimer) {
         clearTimeout(connectionTimeoutTimer);
@@ -281,6 +386,9 @@ export class Pool extends (EventEmitter as { new(): PoolEmitter }) {
    */
   private _removeConnection(client: PoolClient) {
     client.removeListener('error', client.errorHandler);
+    // Ignore any errors when ending the connection
+    // tslint:disable-next-line:no-empty
+    client.on('error', () => {});
 
     if (client.idleTimeoutTimer) {
       clearTimeout(client.idleTimeoutTimer);
@@ -300,7 +408,9 @@ export class Pool extends (EventEmitter as { new(): PoolEmitter }) {
     }
 
     client.end().catch((ex) => {
-      this.emit('error', ex);
+      if (!/This socket has been ended by the other party/igu.test(ex.message)) {
+        this.emit('error', ex);
+      }
     });
 
     this.emit('connectionRemovedFromPool');

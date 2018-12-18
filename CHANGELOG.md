@@ -1,3 +1,10 @@
+### 1.2.0
+
+  * Add reconnectOnDatabaseIsStartingError (default: `true`), waitForDatabaseStartupMillis (default: `0`), and databaseStartupTimeoutMillis (default: `90000`) options for connections in pool
+  * Default reconnectOnReadOnlyTransactionError to `true`
+  * Add waitForReconnectReadOnlyTransactionMillis (default: `0`) and readOnlyTransactionReconnectTimeoutMillis (default: `90000`)
+  * Fix unhandled error when error was thrown while attempting to end a db connection
+
 ### 1.1.0
 
   * Add reconnectOnReadOnlyTransactionError option for connections in pool

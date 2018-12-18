@@ -112,8 +112,42 @@ const pool = new Pool({
 });
 ```
 
+### Handle cluster failover gracefully 
+
+> When a cluster has a failover event, promoting a read-replica to master, there can be a couple sets of errors that
+> happen with already established connections in the pool as well as new connections before
+> the cluster is available in a ready state.
+>
+> By default, when making a new postgres connection and the server throws an error with a message like: 
+> `the database system is starting up`, the postgres-pool library will attempt to reconnect 
+> (with no delay between attempts) for a maximum of 90s.
+>
+> Similarly, if a non-readonly query (create/update/delete/etc) is executed on a readonly connection, the server  will
+> throw an error with a message like: `cannot execute UPDATE in a read-only transaction`. This can occur when a 
+> connection to a db cluster is established and the cluster fails over before the connection is terminated, thus the 
+> connected server becomes a read-replica instead of the expected master.
+> The postgres-pool library will attempt to reconnect (with no delay between attempts) for a maximum of 90s and will
+> try to execute the query on the new connection.
+>
+> Defaults can be overridden and this behavior can be disabled entirely by specifying different values for the 
+> pool options below: 
+
+```js
+const { Pool } = require('postgres-pool');
+
+const pool = new Pool({
+  connectionString: 'postgres://username:pwd@127.0.0.1/db_name',
+  reconnectOnDatabaseIsStartingError: true,         // Enable/disable reconnecting on "the database system is starting up" errors
+  waitForDatabaseStartupMillis: 0,                  // Milliseconds to wait between retry connection attempts while the database is starting up
+  databaseStartupTimeoutMillis: 90000,              // If connection attempts continually return "the database system is starting up", this is the total number of milliseconds to wait until an error is thrown.
+  reconnectOnReadOnlyTransactionError: true,        // If the query should be retried when the database throws "cannot execute X in a read-only transaction"
+  waitForReconnectReadOnlyTransactionMillis: 0,     // Milliseconds to wait between retry queries while the connection is marked as read-only
+  readOnlyTransactionReconnectTimeoutMillis: 90000, // If queries continually return "cannot execute X in a read-only transaction", this is the total number of milliseconds to wait until an error is thrown
+});
+```
+
 ## Compatibility
-- Node.js 8.x or above
+- Node.js 8.11 or above
 
 ## License
 MIT

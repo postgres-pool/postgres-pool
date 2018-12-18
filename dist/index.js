@@ -16,7 +16,12 @@ class Pool extends events_1.EventEmitter {
             idleTimeoutMillis: 10000,
             waitForAvailableConnectionTimeoutMillis: 90000,
             connectionTimeoutMillis: 30000,
-            reconnectOnReadOnlyTransactionError: false,
+            reconnectOnDatabaseIsStartingError: true,
+            waitForDatabaseStartupMillis: 0,
+            databaseStartupTimeoutMillis: 90000,
+            reconnectOnReadOnlyTransactionError: true,
+            waitForReconnectReadOnlyTransactionMillis: 0,
+            readOnlyTransactionReconnectTimeoutMillis: 90000,
         };
         this.options = Object.assign({}, defaultOptions, options);
         this.connectionQueueEventEmitter = new events_1.EventEmitter();
@@ -96,34 +101,7 @@ class Pool extends events_1.EventEmitter {
      * @param {Array} values
      */
     async query(text, values) {
-        const connection = await this.connect();
-        let removeConnection = false;
-        try {
-            return await connection.query(text, values);
-        }
-        catch (ex) {
-            if (!this.options.reconnectOnReadOnlyTransactionError || !/cannot execute [\s\w]+ in a read-only transaction/igu.test(ex.message)) {
-                throw ex;
-            }
-            removeConnection = true;
-        }
-        finally {
-            connection.release(removeConnection);
-        }
-        // If we get here, that means that the query was attempted with a read-only connection.
-        // This can happen when the cluster fails over to a read-replica
-        this.emit('queryDeniedForReadOnlyTransaction');
-        // Clear all idle connections and try the query again with a fresh connection
-        for (const idleConnection of this.idleConnections) {
-            this._removeConnection(idleConnection);
-        }
-        const connection2 = await this.connect();
-        try {
-            return await connection2.query(text, values);
-        }
-        finally {
-            connection2.release();
-        }
+        return this._query(text, values);
     }
     /**
      * Drains the pool of all active client connections. Used to shut down the pool down cleanly
@@ -134,11 +112,57 @@ class Pool extends events_1.EventEmitter {
             this._removeConnection(idleConnection);
         }
     }
+    async _query(text, values, readOnlyStartTime) {
+        const connection = await this.connect();
+        let removeConnection = false;
+        let timeoutError;
+        try {
+            return await connection.query(text, values);
+        }
+        catch (ex) {
+            if (this.options.reconnectOnReadOnlyTransactionError && /cannot execute [\s\w]+ in a read-only transaction/igu.test(ex.message)) {
+                timeoutError = ex;
+                removeConnection = true;
+            }
+            else {
+                throw ex;
+            }
+        }
+        finally {
+            connection.release(removeConnection);
+        }
+        // If we get here, that means that the query was attempted with a read-only connection.
+        // This can happen when the cluster fails over to a read-replica
+        this.emit('queryDeniedForReadOnlyTransaction');
+        // Clear all idle connections and try the query again with a fresh connection
+        for (const idleConnection of this.idleConnections) {
+            // tslint:disable-next-line:no-parameter-reassignment
+            this._removeConnection(idleConnection);
+        }
+        if (!readOnlyStartTime) {
+            // tslint:disable-next-line:no-parameter-reassignment
+            readOnlyStartTime = process.hrtime();
+        }
+        if (this.options.waitForReconnectReadOnlyTransactionMillis > 0) {
+            await new Promise((resolve) => {
+                setTimeout(() => {
+                    resolve();
+                }, this.options.waitForReconnectReadOnlyTransactionMillis);
+            });
+        }
+        const diff = process.hrtime(readOnlyStartTime);
+        const timeSinceLastRun = Number(((diff[0] * 1e3) + (diff[1] * 1e-6)).toFixed(3));
+        if (timeSinceLastRun > this.options.readOnlyTransactionReconnectTimeoutMillis) {
+            throw timeoutError;
+        }
+        return await this._query(text, values, readOnlyStartTime);
+    }
     /**
      * Creates a new client connection to add to the pool
      * @param {string} connectionId
+     * @param {[number,number]} [databaseStartupStartTime] - hrtime when the db was first listed as starting up
      */
-    async _createConnection(connectionId) {
+    async _createConnection(connectionId, databaseStartupStartTime) {
         const client = new pg_1.Client(this.options);
         client.uniqueId = connectionId;
         /**
@@ -154,12 +178,15 @@ class Pool extends events_1.EventEmitter {
             if (id) {
                 this.connectionQueueEventEmitter.emit(`connection_${id}`, client);
             }
-            else {
+            else if (this.options.idleTimeoutMillis > 0) {
                 client.idleTimeoutTimer = setTimeout(() => {
                     this._removeConnection(client);
                 }, this.options.idleTimeoutMillis);
                 this.idleConnections.push(client);
                 this.emit('connectionIdle');
+            }
+            else {
+                this._removeConnection(client);
             }
         };
         client.errorHandler = (err) => {
@@ -180,8 +207,30 @@ class Pool extends events_1.EventEmitter {
             this.emit('connectionAddedToPool');
         }
         catch (ex) {
-            await client.end();
-            throw ex;
+            if (this.options.reconnectOnDatabaseIsStartingError && /the database system is starting up/igu.test(ex.message)) {
+                this.emit('waitingForDatabaseToStart');
+                if (!databaseStartupStartTime) {
+                    // tslint:disable-next-line:no-parameter-reassignment
+                    databaseStartupStartTime = process.hrtime();
+                }
+                if (this.options.waitForDatabaseStartupMillis > 0) {
+                    await new Promise((resolve) => {
+                        setTimeout(() => {
+                            resolve();
+                        }, this.options.waitForDatabaseStartupMillis);
+                    });
+                }
+                const diff = process.hrtime(databaseStartupStartTime);
+                const timeSinceFirstConnectAttempt = Number(((diff[0] * 1e3) + (diff[1] * 1e-6)).toFixed(3));
+                if (timeSinceFirstConnectAttempt > this.options.databaseStartupTimeoutMillis) {
+                    throw ex;
+                }
+                return await this._createConnection(connectionId, databaseStartupStartTime);
+            }
+            else {
+                await client.end();
+                throw ex;
+            }
         }
         finally {
             if (connectionTimeoutTimer) {
@@ -196,6 +245,9 @@ class Pool extends events_1.EventEmitter {
      */
     _removeConnection(client) {
         client.removeListener('error', client.errorHandler);
+        // Ignore any errors when ending the connection
+        // tslint:disable-next-line:no-empty
+        client.on('error', () => { });
         if (client.idleTimeoutTimer) {
             clearTimeout(client.idleTimeoutTimer);
         }
@@ -211,7 +263,9 @@ class Pool extends events_1.EventEmitter {
             this.connections.splice(connectionIndex, 1);
         }
         client.end().catch((ex) => {
-            this.emit('error', ex);
+            if (!/This socket has been ended by the other party/igu.test(ex.message)) {
+                this.emit('error', ex);
+            }
         });
         this.emit('connectionRemovedFromPool');
     }
