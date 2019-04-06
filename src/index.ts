@@ -52,6 +52,18 @@ export interface PoolOptionsBase {
    * milliseconds to wait until an error is thrown.
    */
   readOnlyTransactionReconnectTimeoutMillis: number;
+  /**
+   * Specifies the regular expression to find named parameters in a query
+   */
+  namedParameterFindRegExp: RegExp;
+  /**
+   * Returns the regular expression used to replace a named parameter in a query
+   */
+  getNamedParameterReplaceRegExp: (namedParameter: string) => RegExp;
+  /**
+   * Gets the name of a named parameter without the symbols. This should correspond to the key in the query value object
+   */
+  getNamedParameterName: (namedParameterWithSymbols: string) => string;
 }
 
 export interface PoolOptionsExplicit {
@@ -70,6 +82,9 @@ export interface PoolOptionsExplicit {
   reconnectOnReadOnlyTransactionError?: boolean;
   waitForReconnectReadOnlyTransactionMillis?: number;
   readOnlyTransactionReconnectTimeoutMillis?: number;
+  namedParameterFindRegExp?: RegExp;
+  getNamedParameterReplaceRegExp?: (namedParameter: string) => RegExp;
+  getNamedParameterName?: (namedParameterWithSymbols: string) => string;
 }
 
 export interface PoolOptionsImplicit {
@@ -84,6 +99,9 @@ export interface PoolOptionsImplicit {
   reconnectOnReadOnlyTransactionError?: boolean;
   waitForReconnectReadOnlyTransactionMillis?: number;
   readOnlyTransactionReconnectTimeoutMillis?: number;
+  namedParameterFindRegExp?: RegExp;
+  getNamedParameterReplaceRegExp?: (namedParameter: string) => RegExp;
+  getNamedParameterName?: (namedParameterWithSymbols: string) => string;
 }
 
 export type PoolClient = Client & {
@@ -108,7 +126,7 @@ interface PoolEvents {
 
 type PoolEmitter = StrictEventEmitter<EventEmitter, PoolEvents>;
 
-export class Pool extends (EventEmitter as { new(): PoolEmitter }) {
+export class Pool extends (EventEmitter as new() => PoolEmitter) {
   /**
    * Gets the number of queued requests waiting for a database connection
    */
@@ -152,6 +170,15 @@ export class Pool extends (EventEmitter as { new(): PoolEmitter }) {
       reconnectOnReadOnlyTransactionError: true,
       waitForReconnectReadOnlyTransactionMillis: 0,
       readOnlyTransactionReconnectTimeoutMillis: 90000,
+      namedParameterFindRegExp: /@([\w])+\b/g,
+      getNamedParameterReplaceRegExp(namedParameter: string): RegExp {
+        // eslint-disable-next-line security/detect-non-literal-regexp
+        return new RegExp(`@${namedParameter}\\b`, 'gm');
+      },
+      getNamedParameterName(namedParameterWithSymbols: string): string {
+        // Remove leading @ symbol
+        return namedParameterWithSymbols.substring(1);
+      },
     };
 
     this.options = Object.assign({}, defaultOptions, options);
@@ -192,7 +219,7 @@ export class Pool extends (EventEmitter as { new(): PoolEmitter }) {
     try {
       return await Promise.race([
         new Promise((resolve) => {
-          this.connectionQueueEventEmitter.on(`connection_${id}`, (client: Client) => {
+          this.connectionQueueEventEmitter.on(`connection_${id}`, (client: PoolClient) => {
             this.connectionQueueEventEmitter.removeAllListeners(`connection_${id}`);
 
             this.emit('connectionRequestDequeued');
@@ -220,12 +247,60 @@ export class Pool extends (EventEmitter as { new(): PoolEmitter }) {
   }
 
   /**
+   * Gets a connection to the database and executes the specified query using named parameters. This method will release the connection back to the pool when the query has finished.
+   * @param {string} text
+   * @param {Object} values - Keys represent named parameters in the query
+   */
+  public async query(text: string, values: { [index: string]: any }): Promise<QueryResult>;
+
+  /**
    * Gets a connection to the database and executes the specified query. This method will release the connection back to the pool when the query has finished.
    * @param {string} text
    * @param {Array} values
    */
-  public async query(text: string, values?: any[]): Promise<QueryResult> {
-    return this._query(text, values);
+  public async query(text: string, values?: any[]): Promise<QueryResult>;
+
+  /**
+   * Gets a connection to the database and executes the specified query. This method will release the connection back to the pool when the query has finished.
+   * @param {string} text
+   * @param {Object|Array} values - If an object, keys represent named parameters in the query
+   */
+  public async query(text: string, values?: any[] | { [index: string]: any }): Promise<QueryResult> {
+    if (!values || Array.isArray(values)) {
+      return this._query(text, values);
+    }
+
+    const tokenMatches = text.match(this.options.namedParameterFindRegExp);
+    if (!tokenMatches) {
+      throw new Error('Did not find named parameters in in the query. Expected named parameter form is @foo');
+    }
+
+    // Get unique token names
+    // https://stackoverflow.com/a/45886147/3085
+    const tokens = Array.from(new Set(tokenMatches.map(this.options.getNamedParameterName)));
+
+    const missingParameters: string[] = [];
+    for (const token of tokens) {
+      if (!(token in values)) {
+        missingParameters.push(token);
+      }
+    }
+
+    if (missingParameters.length) {
+      throw new Error(`Missing query parameter(s): ${missingParameters.join(', ')}`);
+    }
+
+    let sql = text.slice();
+    const params = [];
+    let tokenIndex = 1;
+    for (const token of tokens) {
+      sql = sql.replace(this.options.getNamedParameterReplaceRegExp(token), `$${tokenIndex}`);
+      params.push(values[token]);
+
+      tokenIndex += 1;
+    }
+
+    return this._query(sql, params);
   }
 
   /**

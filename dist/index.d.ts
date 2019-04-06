@@ -51,6 +51,18 @@ export interface PoolOptionsBase {
      * milliseconds to wait until an error is thrown.
      */
     readOnlyTransactionReconnectTimeoutMillis: number;
+    /**
+     * Specifies the regular expression to find named parameters in a query
+     */
+    namedParameterFindRegExp: RegExp;
+    /**
+     * Returns the regular expression used to replace a named parameter in a query
+     */
+    getNamedParameterReplaceRegExp: (namedParameter: string) => RegExp;
+    /**
+     * Gets the name of a named parameter without the symbols. This should correspond to the key in the query value object
+     */
+    getNamedParameterName: (namedParameterWithSymbols: string) => string;
 }
 export interface PoolOptionsExplicit {
     host: string;
@@ -68,6 +80,9 @@ export interface PoolOptionsExplicit {
     reconnectOnReadOnlyTransactionError?: boolean;
     waitForReconnectReadOnlyTransactionMillis?: number;
     readOnlyTransactionReconnectTimeoutMillis?: number;
+    namedParameterFindRegExp?: RegExp;
+    getNamedParameterReplaceRegExp?: (namedParameter: string) => RegExp;
+    getNamedParameterName?: (namedParameterWithSymbols: string) => string;
 }
 export interface PoolOptionsImplicit {
     connectionString: string;
@@ -81,6 +96,9 @@ export interface PoolOptionsImplicit {
     reconnectOnReadOnlyTransactionError?: boolean;
     waitForReconnectReadOnlyTransactionMillis?: number;
     readOnlyTransactionReconnectTimeoutMillis?: number;
+    namedParameterFindRegExp?: RegExp;
+    getNamedParameterReplaceRegExp?: (namedParameter: string) => RegExp;
+    getNamedParameterName?: (namedParameterWithSymbols: string) => string;
 }
 export declare type PoolClient = Client & {
     uniqueId: string;
@@ -126,6 +144,14 @@ export declare class Pool extends Pool_base {
      * Note: You must call `.release()` when finished with the client connection object. That will release the connection back to the pool to be used by other requests.
      */
     connect(): Promise<PoolClient>;
+    /**
+     * Gets a connection to the database and executes the specified query using named parameters. This method will release the connection back to the pool when the query has finished.
+     * @param {string} text
+     * @param {Object} values - Keys represent named parameters in the query
+     */
+    query(text: string, values: {
+        [index: string]: any;
+    }): Promise<QueryResult>;
     /**
      * Gets a connection to the database and executes the specified query. This method will release the connection back to the pool when the query has finished.
      * @param {string} text

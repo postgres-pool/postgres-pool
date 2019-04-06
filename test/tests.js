@@ -445,4 +445,130 @@ describe('#query()', () => {
       releaseStub.calledTwice.should.equal(true);
     });
   });
+  describe('Named Parameters', () => {
+    it('should convert a query with named parameters to pg query syntax', async () => {
+      // NOTE: This checks for:
+      // * Multiple uses of the same named parameter
+      // * Object key order being different than token location in the query
+      // * A named parameter that equals the substring of another named parameter
+      // * A named parameter as the last token in the query (no space etc after the named parameter)
+
+      const pool = new Pool({
+        connectionString: 'postgres://foo:bar@baz:1234/xur',
+      });
+      const expectedResult = faker.random.uuid();
+      const connection = {
+        query() {},
+        release() {},
+      };
+      const connectStub = sinon.stub(pool, 'connect').returns(connection);
+      const queryStub = sinon.stub(connection, 'query').returns(expectedResult);
+      const releaseStub = sinon.stub(connection, 'release').returns(true);
+
+      await pool.query('select foo from foobar where id=@id and (bar=@foobar or bar=@foo) and foo=@foo', {
+        id: 'lorem',
+        foo: 'lorem - foo',
+        foobar: 'lorem - foobar',
+        unused: 'lorem - unused',
+      });
+      connectStub.restore();
+      queryStub.restore();
+      releaseStub.restore();
+
+      connectStub.calledOnce.should.equal(true);
+      queryStub.calledOnce.should.equal(true);
+      releaseStub.calledOnce.should.equal(true);
+
+      queryStub.getCall(0).args[0].should.equal('select foo from foobar where id=$1 and (bar=$2 or bar=$3) and foo=$3');
+      queryStub.getCall(0).args[1].should.deep.equal([
+        'lorem',
+        'lorem - foobar',
+        'lorem - foo',
+      ]);
+    });
+    it('should throw if a named parameter is specified in the query string but not present in the query object', async () => {
+      const pool = new Pool({
+        connectionString: 'postgres://foo:bar@baz:1234/xur',
+      });
+      const expectedResult = faker.random.uuid();
+      const connection = {
+        query() {},
+        release() {},
+      };
+      const connectStub = sinon.stub(pool, 'connect').returns(connection);
+      const queryStub = sinon.stub(connection, 'query').returns(expectedResult);
+      const releaseStub = sinon.stub(connection, 'release').returns(true);
+
+      try {
+        await pool.query('select * from foobar where id=@id', {
+          unused: 'lorem - unused',
+        });
+        true.should.equal(false);
+      } catch (ex) {
+        ex.message.should.equal('Missing query parameter(s): id');
+      } finally {
+        connectStub.restore();
+        queryStub.restore();
+        releaseStub.restore();
+      }
+
+      connectStub.called.should.equal(false);
+      queryStub.called.should.equal(false);
+      releaseStub.called.should.equal(false);
+    });
+    it('should ignore a query with named parameters if the query object is an array', async () => {
+      const pool = new Pool({
+        connectionString: 'postgres://foo:bar@baz:1234/xur',
+      });
+      const expectedResult = faker.random.uuid();
+      const connection = {
+        query() {},
+        release() {},
+      };
+      const connectStub = sinon.stub(pool, 'connect').returns(connection);
+      const queryStub = sinon.stub(connection, 'query').returns(expectedResult);
+      const releaseStub = sinon.stub(connection, 'release').returns(true);
+
+      await pool.query('select foo from foobar where foo=@foo', [{
+        foo: 'lorem - foo',
+      }]);
+      connectStub.restore();
+      queryStub.restore();
+      releaseStub.restore();
+
+      connectStub.calledOnce.should.equal(true);
+      queryStub.calledOnce.should.equal(true);
+      releaseStub.calledOnce.should.equal(true);
+
+      queryStub.getCall(0).args[0].should.equal('select foo from foobar where foo=@foo');
+      queryStub.getCall(0).args[1].should.deep.equal([{
+        foo: 'lorem - foo',
+      }]);
+    });
+    it('should ignore a query with named parameters if the query object is undefined', async () => {
+      const pool = new Pool({
+        connectionString: 'postgres://foo:bar@baz:1234/xur',
+      });
+      const expectedResult = faker.random.uuid();
+      const connection = {
+        query() {},
+        release() {},
+      };
+      const connectStub = sinon.stub(pool, 'connect').returns(connection);
+      const queryStub = sinon.stub(connection, 'query').returns(expectedResult);
+      const releaseStub = sinon.stub(connection, 'release').returns(true);
+
+      await pool.query('select foo from foobar where foo=@foo');
+      connectStub.restore();
+      queryStub.restore();
+      releaseStub.restore();
+
+      connectStub.calledOnce.should.equal(true);
+      queryStub.calledOnce.should.equal(true);
+      releaseStub.calledOnce.should.equal(true);
+
+      queryStub.getCall(0).args[0].should.equal('select foo from foobar where foo=@foo');
+      (typeof queryStub.getCall(0).args[1] === 'undefined').should.equal(true);
+    });
+  });
 });

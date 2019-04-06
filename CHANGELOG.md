@@ -1,3 +1,19 @@
+### 1.3.0
+
+  * Updated to typescript 3.4
+  * Updated dependencies
+  * Added support for named parameters (namedParameterFindRegExp, getNamedParameterReplaceRegExp, and getNamedParameterName)
+    
+    Notes:
+
+      * Named parameters are only used if an object is passed as the value parameter to the query function
+        
+        ```js
+        myPool.query('select * from foobar where id=@id', { id: '123' });
+        ```
+        
+      * By default, the named parameter syntax is `@parameterName`.
+
 ### 1.2.0
 
   * Add reconnectOnDatabaseIsStartingError (default: `true`), waitForDatabaseStartupMillis (default: `0`), and databaseStartupTimeoutMillis (default: `90000`) options for connections in pool

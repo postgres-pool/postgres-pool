@@ -27,6 +27,23 @@ const results = await pool.query('SELECT * from "users" where id=$1', [userId]);
 console.log('user:', results.rows[0])
 ```
 
+### Using named parameters in the query
+
+```js
+const { Pool } = require('postgres-pool');
+
+const pool = new Pool({
+  connectionString: 'postgres://username:pwd@127.0.0.1/db_name',
+});
+
+const userId = 42;
+const results = await pool.query('SELECT * from "users" where id=@id', {
+  id: userId,
+});
+
+console.log('user:', results.rows[0])
+```
+
 ### More control over connections (not recommended)
 
 ```js

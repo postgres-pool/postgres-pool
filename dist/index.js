@@ -22,6 +22,15 @@ class Pool extends events_1.EventEmitter {
             reconnectOnReadOnlyTransactionError: true,
             waitForReconnectReadOnlyTransactionMillis: 0,
             readOnlyTransactionReconnectTimeoutMillis: 90000,
+            namedParameterFindRegExp: /@([\w])+\b/g,
+            getNamedParameterReplaceRegExp(namedParameter) {
+                // eslint-disable-next-line security/detect-non-literal-regexp
+                return new RegExp(`@${namedParameter}\\b`, 'gm');
+            },
+            getNamedParameterName(namedParameterWithSymbols) {
+                // Remove leading @ symbol
+                return namedParameterWithSymbols.substring(1);
+            },
         };
         this.options = Object.assign({}, defaultOptions, options);
         this.connectionQueueEventEmitter = new events_1.EventEmitter();
@@ -98,10 +107,37 @@ class Pool extends events_1.EventEmitter {
     /**
      * Gets a connection to the database and executes the specified query. This method will release the connection back to the pool when the query has finished.
      * @param {string} text
-     * @param {Array} values
+     * @param {Object|Array} values - If an object, keys represent named parameters in the query
      */
     async query(text, values) {
-        return this._query(text, values);
+        if (!values || Array.isArray(values)) {
+            return this._query(text, values);
+        }
+        const tokenMatches = text.match(this.options.namedParameterFindRegExp);
+        if (!tokenMatches) {
+            throw new Error('Did not find named parameters in in the query. Expected named parameter form is @foo');
+        }
+        // Get unique token names
+        // https://stackoverflow.com/a/45886147/3085
+        const tokens = Array.from(new Set(tokenMatches.map(this.options.getNamedParameterName)));
+        const missingParameters = [];
+        for (const token of tokens) {
+            if (!(token in values)) {
+                missingParameters.push(token);
+            }
+        }
+        if (missingParameters.length) {
+            throw new Error(`Missing query parameter(s): ${missingParameters.join(', ')}`);
+        }
+        let sql = text.slice();
+        const params = [];
+        let tokenIndex = 1;
+        for (const token of tokens) {
+            sql = sql.replace(this.options.getNamedParameterReplaceRegExp(token), `$${tokenIndex}`);
+            params.push(values[token]);
+            tokenIndex += 1;
+        }
+        return this._query(sql, params);
     }
     /**
      * Drains the pool of all active client connections. Used to shut down the pool down cleanly
