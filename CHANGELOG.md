@@ -1,3 +1,9 @@
+### 1.4.0
+
+  * Updated to typescript 3.5
+  * Updated npms
+  * Include type definitions as "dependencies" instead of "devDependencies"  
+
 ### 1.3.0
 
   * Updated to typescript 3.4

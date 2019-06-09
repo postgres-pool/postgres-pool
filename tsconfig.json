@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2017",
     "module": "commonjs",
-    "lib": ["esnext", "es2017"],
+    "lib": ["esnext"],
     "moduleResolution": "node",
     "allowJs": false,
     "declaration": true,
