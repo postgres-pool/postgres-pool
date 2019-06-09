@@ -1,6 +1,6 @@
 {
   "name": "postgres-pool",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Connection pool implementation for node-pg",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -35,9 +35,9 @@
   },
   "homepage": "https://github.com/mpirik/postgres-pool#readme",
   "dependencies": {
-    "@types/pg": "7.4.14",
-    "@types/uuid": "~3.4.4",
-    "pg": "7.11.0",
+    "@types/pg": "^7.x.x",
+    "@types/uuid": "^3.x.x",
+    "pg": "^7.x.x",
     "strict-event-emitter-types": "~2.0.0",
     "uuid": "^3.x.x"
   },
@@ -53,11 +53,11 @@
     "chai": "~4.2.0",
     "chai-as-promised": "~7.1.1",
     "faker": "~4.1.0",
-    "husky": "2.4.0",
-    "mocha": "6.1.4",
-    "sinon": "7.3.2",
-    "tslint": "5.17.0",
-    "tslint-config-airbnb": "~5.11.0",
-    "typescript": "3.5.1"
+    "husky": "^2.4.0",
+    "mocha": "^6.1.4",
+    "sinon": "^7.3.2",
+    "tslint": "^5.17.0",
+    "tslint-config-airbnb": "^5.11.0",
+    "typescript": "~3.5.1"
   }
 }

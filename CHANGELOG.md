@@ -1,3 +1,7 @@
+### 1.4.1
+
+  * Add wildcards to dependency versions
+
 ### 1.4.0
 
   * Updated to typescript 3.5
