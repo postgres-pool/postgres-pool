@@ -32,8 +32,6 @@ bower_components
 # Compiled binary addons (https://nodejs.org/api/addons.html)
 build/Release
 
-dist/**/*.map
-
 # Dependency directories
 node_modules/
 jspm_packages/
@@ -68,3 +66,4 @@ nbproject
 .idea
 .vscode
 /package-lock.json
+dist
