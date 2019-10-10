@@ -164,7 +164,7 @@ const pool = new Pool({
 ```
 
 ## Compatibility
-- Node.js 8.11 or above
+- Node.js v10 or above
 
 ## License
 MIT
