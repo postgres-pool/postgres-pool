@@ -24,7 +24,9 @@ node_modules/
 .gitignore
 .git
 .npmrc
+
 tsconfig.json
+tsconfig.lint.json
 
 *~
 *#
