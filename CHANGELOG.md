@@ -1,3 +1,11 @@
+### 2.0.0
+
+  * Drop node 8 support
+  * Update npms
+  * Clear pool connection timeout timer immediately after getting connection from pool
+  * Clear connection timeout timer immediately after successful connect() 
+  * Try to destroy socket connection before calling client.end() on connection error 
+
 ### 1.4.1
 
   * Add wildcards to dependency versions

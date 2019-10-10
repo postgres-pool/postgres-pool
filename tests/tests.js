@@ -162,7 +162,7 @@ describe('#connect()', () => {
 
       connectStub.calledTwice.should.equal(true);
       queryStub.calledOnce.should.equal(true);
-      endStub.calledOnce.should.equal(true);
+      endStub.calledTwice.should.equal(true);
     });
     it('should try connecting immediately if reconnectOnDatabaseIsStartingError=true and "the database system is starting up" is thrown and waitForDatabaseStartupMillis=0', async () => {
       const pool = new Pool({
@@ -192,7 +192,7 @@ describe('#connect()', () => {
 
       connectStub.calledTwice.should.equal(true);
       queryStub.calledOnce.should.equal(true);
-      endStub.calledOnce.should.equal(true);
+      endStub.calledTwice.should.equal(true);
     });
   });
 });

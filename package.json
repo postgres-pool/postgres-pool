@@ -1,15 +1,16 @@
 {
   "name": "postgres-pool",
-  "version": "1.4.1",
+  "version": "2.0.0",
   "description": "Connection pool implementation for node-pg",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "prepublishOnly": "npm run lint && npm run test",
     "pretest": "npm run build",
-    "test": "mocha --reporter spec",
-    "lint": "eslint --fix --ext .ts,.js src tests"
+    "test": "mocha tests/tests.js",
+    "lint": "eslint --fix --ext .ts,.js src tests",
+    "dist": "if [ -d \"src\" ]; then rm -rf dist && npm run build && npm run lint && npm run test && cp package.json dist && cp *.md dist && cp .npmignore dist && cd dist && npm publish; fi",
+    "prepublishOnly": "if [ -d \"src\" ]; then echo \"Please use: npm run dist\" && exit 125; fi"
   },
   "lint-staged": {
     "*.js": [
