@@ -1,21 +1,23 @@
 {
   "compilerOptions": {
-    "target": "ES2017",
+    "target": "es2018",
     "module": "commonjs",
     "lib": ["esnext"],
     "moduleResolution": "node",
     "allowJs": false,
-    "declaration": true,
-    "sourceMap": true,
-    "strict": true,                        /* Enable all strict type-checking options. */
-    "outDir": "./dist",
+
+    "outDir": "dist",
     "baseUrl": ".",
 
-    /* Additional Checks */
-    "noUnusedLocals": true,                /* Report errors on unused locals. */
-    "noUnusedParameters": true,            /* Report errors on unused parameters. */
-    "noImplicitReturns": true,             /* Report error when not all code paths in function return a value. */
-    "noFallthroughCasesInSwitch": true,    /* Report errors for fallthrough cases in switch statement. */
+    "declaration": true,
+    "sourceMap": true,
+
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true
   },
   "include": [
     "src/**/*.ts"

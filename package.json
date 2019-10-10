@@ -50,7 +50,7 @@
     "uuid": "^3.x.x"
   },
   "engines": {
-    "node": ">=8.11"
+    "node": ">=10"
   },
   "devDependencies": {
     "@types/chai": "4.2.3",
