@@ -18,7 +18,7 @@ pids
 .eslintcache
 
 src/
-test/
+tests/
 node_modules/
 .editorconfig
 .gitignore

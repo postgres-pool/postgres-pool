@@ -1,6 +1,6 @@
-'use strict';
 
 const chai = require('chai');
+
 chai.should();
 chai.use(require('chai-as-promised'));
 
@@ -277,6 +277,7 @@ describe('#query()', () => {
     } catch (ex) {
       // ignore
     }
+
     createConnectionStub.restore();
     queryStub.restore();
     releaseStub.restore();
