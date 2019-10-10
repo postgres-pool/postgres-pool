@@ -130,33 +130,40 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
   /**
    * Gets the number of queued requests waiting for a database connection
    */
-  get waitingCount(): number {
+  public get waitingCount(): number {
     return this.connectionQueue.length;
   }
 
   /**
    * Gets the number of idle connections
    */
-  get idleCount(): number {
+  public get idleCount(): number {
     return this.idleConnections.length;
   }
 
   /**
    * Gets the total number of connections in the pool
    */
-  get totalCount(): number {
+  public get totalCount(): number {
     return this.connections.length;
   }
+
   protected options: PoolOptionsBase & (PoolOptionsExplicit | PoolOptionsImplicit);
+
   // Internal event emitter used to handle queued connection requests
   protected connectionQueueEventEmitter: EventEmitter;
+
   protected connections: string[] = [];
+
   // Should self order by idle timeout ascending
   protected idleConnections: PoolClient[] = [];
-  protected connectionQueue: string[] = [];
-  protected isEnding: boolean = false;
 
-  constructor (options: PoolOptionsExplicit | PoolOptionsImplicit) {
+  protected connectionQueue: string[] = [];
+
+  protected isEnding = false;
+
+  public constructor(options: PoolOptionsExplicit | PoolOptionsImplicit) {
+    // eslint-disable-next-line constructor-super
     super();
 
     const defaultOptions: PoolOptionsBase = {
@@ -181,7 +188,7 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
       },
     };
 
-    this.options = Object.assign({}, defaultOptions, options);
+    this.options = { ...defaultOptions, ...options };
     this.connectionQueueEventEmitter = new EventEmitter();
   }
 
@@ -226,6 +233,7 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
             resolve(client);
           });
         }),
+        // eslint-disable-next-line promise/param-names
         new Promise((_, reject) => {
           connectionTimeoutTimer = setTimeout(() => {
             this.connectionQueueEventEmitter.removeAllListeners(`connection_${id}`);
@@ -246,10 +254,11 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
     }
   }
 
+  /* eslint-disable @typescript-eslint/no-explicit-any */
   /**
    * Gets a connection to the database and executes the specified query using named parameters. This method will release the connection back to the pool when the query has finished.
    * @param {string} text
-   * @param {Object} values - Keys represent named parameters in the query
+   * @param {object} values - Keys represent named parameters in the query
    */
   public async query(text: string, values: { [index: string]: any }): Promise<QueryResult>;
 
@@ -263,9 +272,10 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
   /**
    * Gets a connection to the database and executes the specified query. This method will release the connection back to the pool when the query has finished.
    * @param {string} text
-   * @param {Object|Array} values - If an object, keys represent named parameters in the query
+   * @param {object|Array} values - If an object, keys represent named parameters in the query
    */
   public async query(text: string, values?: any[] | { [index: string]: any }): Promise<QueryResult> {
+    /* eslint-enable @typescript-eslint/no-explicit-any */
     if (!values || Array.isArray(values)) {
       return this._query(text, values);
     }
@@ -314,6 +324,7 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async _query(text: string, values?: any[], readOnlyStartTime?: [number, number]): Promise<QueryResult> {
     const connection = await this.connect();
     let removeConnection = false;
@@ -337,12 +348,11 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
 
     // Clear all idle connections and try the query again with a fresh connection
     for (const idleConnection of this.idleConnections) {
-      // tslint:disable-next-line:no-parameter-reassignment
       this._removeConnection(idleConnection);
     }
 
     if (!readOnlyStartTime) {
-      // tslint:disable-next-line:no-parameter-reassignment
+      // eslint-disable-next-line no-param-reassign
       readOnlyStartTime = process.hrtime();
     }
 
@@ -374,8 +384,10 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
     client.uniqueId = connectionId;
     /**
      * Releases the client connection back to the pool, to be used by another query.
+     *
+     * @param {boolean} [removeConnection=false]
      */
-    client.release = (removeConnection: boolean = false) => {
+    client.release = (removeConnection = false) => {
       if (this.isEnding || removeConnection) {
         this._removeConnection(client);
         return;
@@ -408,6 +420,7 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
     try {
       await Promise.race([
         client.connect(),
+        // eslint-disable-next-line promise/param-names
         new Promise((_, reject) => {
           connectionTimeoutTimer = setTimeout(() => {
             reject(new Error('Timed out trying to connect to postgres'));
@@ -421,7 +434,7 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
         this.emit('waitingForDatabaseToStart');
 
         if (!databaseStartupStartTime) {
-          // tslint:disable-next-line:no-parameter-reassignment
+          // eslint-disable-next-line no-param-reassign
           databaseStartupStartTime = process.hrtime();
         }
 
@@ -441,11 +454,10 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
         }
 
         return await this._createConnection(connectionId, databaseStartupStartTime);
-      } else {
+      }
         await client.end();
 
         throw ex;
-      }
     } finally {
       if (connectionTimeoutTimer) {
         clearTimeout(connectionTimeoutTimer);
@@ -462,16 +474,13 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
   private _removeConnection(client: PoolClient) {
     client.removeListener('error', client.errorHandler);
     // Ignore any errors when ending the connection
-    // tslint:disable-next-line:no-empty
     client.on('error', () => {});
 
     if (client.idleTimeoutTimer) {
       clearTimeout(client.idleTimeoutTimer);
     }
 
-    const idleConnectionIndex = this.idleConnections.findIndex((connection) => {
-      return connection.uniqueId === client.uniqueId;
-    });
+    const idleConnectionIndex = this.idleConnections.findIndex((connection) => connection.uniqueId === client.uniqueId);
     if (idleConnectionIndex > -1) {
       this.idleConnections.splice(idleConnectionIndex, 1);
       this.emit('connectionRemovedFromIdlePool');
