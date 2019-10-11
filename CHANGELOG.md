@@ -1,3 +1,8 @@
+### 2.0.1
+
+  * Move to https://github.com/postgres-pool/postgres-pool
+  * Update npms
+
 ### 2.0.0
 
   * Drop node 8 support

@@ -1,9 +1,9 @@
 {
   "name": "postgres-pool",
-  "version": "2.0.0",
-  "description": "Connection pool implementation for node-pg",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "version": "2.0.1",
+  "description": "Node postgres connection pool implementation for node-pg",
+  "main": "index.js",
+  "types": "index.d.ts",
   "scripts": {
     "build": "tsc",
     "pretest": "npm run build",
@@ -27,7 +27,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mpirik/postgres-pool.git"
+    "url": "git+https://github.com/postgres-pool/postgres-pool.git"
   },
   "keywords": [
     "node",
@@ -40,9 +40,9 @@
   "author": "Jim Geurts <jim@biacreations.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/mpirik/postgres-pool/issues"
+    "url": "https://github.com/postgres-pool/postgres-pool/issues"
   },
-  "homepage": "https://github.com/mpirik/postgres-pool#readme",
+  "homepage": "https://github.com/postgres-pool/postgres-pool#readme",
   "dependencies": {
     "@types/pg": "^7.x.x",
     "@types/uuid": "^3.x.x",
@@ -59,8 +59,8 @@
     "@types/faker": "4.1.6",
     "@types/mocha": "5.2.7",
     "@types/sinon": "7.5.0",
-    "@typescript-eslint/eslint-plugin": "2.3.2",
-    "@typescript-eslint/parser": "2.3.2",
+    "@typescript-eslint/eslint-plugin": "2.3.3",
+    "@typescript-eslint/parser": "2.3.3",
     "chai": "~4.2.0",
     "chai-as-promised": "~7.1.1",
     "eslint": "6.5.1",
