@@ -6,6 +6,24 @@ import {
 } from 'pg';
 import { StrictEventEmitter } from 'strict-event-emitter-types';
 import { v4 } from 'uuid';
+import * as fs from 'fs';
+import * as path from 'path';
+import { ConnectionOptions } from 'tls';
+
+export interface SslSettings {
+  /**
+   * TLS options for the underlying socket connection.
+   */
+  ssl?: ConnectionOptions;
+}
+
+export interface SslSettingsOrAwsRdsSsl {
+  /**
+   * TLS options for the underlying socket connection.
+   * NOTE: `aws-rds` sets up strict tls connection details for connecting to AWS RDS instances
+   */
+  ssl?: 'aws-rds' | ConnectionOptions;
+}
 
 export interface PoolOptionsBase {
   /**
@@ -152,7 +170,7 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
     return this.connections.length;
   }
 
-  protected options: PoolOptionsBase & (PoolOptionsExplicit | PoolOptionsImplicit);
+  protected options: PoolOptionsBase & SslSettings & (PoolOptionsExplicit | PoolOptionsImplicit);
 
   // Internal event emitter used to handle queued connection requests
   protected connectionQueueEventEmitter: EventEmitter;
@@ -166,7 +184,7 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
 
   protected isEnding = false;
 
-  public constructor(options: PoolOptionsExplicit | PoolOptionsImplicit) {
+  public constructor(options: SslSettingsOrAwsRdsSsl & (PoolOptionsExplicit | PoolOptionsImplicit)) {
     // eslint-disable-next-line constructor-super
     super();
 
@@ -192,7 +210,24 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
       },
     };
 
-    this.options = { ...defaultOptions, ...options };
+    const {
+      ssl,
+      ...otherOptions
+    } = options;
+
+    this.options = { ...defaultOptions, ...otherOptions };
+
+    if (ssl === 'aws-rds') {
+      this.options.ssl = {
+        rejectUnauthorized: true,
+        // eslint-disable-next-line security/detect-non-literal-fs-filename
+        ca: fs.readFileSync(path.join(__dirname, './certs/rds-combined-ca-bundle.pem')),
+        minVersion: 'TLSv1.2',
+      };
+    } else {
+      this.options.ssl = ssl;
+    }
+
     this.connectionQueueEventEmitter = new EventEmitter();
   }
 

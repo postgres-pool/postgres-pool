@@ -105,6 +105,50 @@ const pool = new Pool({
 });
 ```
 
+### AWS RDS specific TLS settings for connections
+> Setting ssl='aws-rds' will:
+> * configure the [AWS root certificate](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html)
+> * reject any connection which is not authorized with the list of supplied CAs.
+> * attempt to use TLSv1.2 as the minimum TLS version.
+>
+> It is the same as:
+> ```js
+> ssl: {
+>   rejectUnauthorized: true,
+>   ca: fs.readFileSync('./certs/rds-combined-ca-bundle.pem'),
+>   minVersion: 'TLSv1.2',
+> }
+> ```
+
+```js
+const { Pool } = require('postgres-pool');
+
+const pool = new Pool({
+  connectionString: 'postgres://username:pwd@127.0.0.1/db_name?sslmode=verify-full',
+  ssl: 'aws-rds'
+});
+```
+
+### TLS details for a connection
+
+```js
+const { Pool } = require('postgres-pool');
+
+const pool = new Pool({
+  host: '127.0.0.1',
+  database: 'db_name',
+  user: 'foo',
+  password: 'bar',
+  port: 1234,
+  ssl: {
+    rejectUnauthorized: false,
+    ca: fs.readFileSync('/path/to/server-certificates/root.crt').toString(),
+    key: fs.readFileSync('/path/to/client-key/postgresql.key').toString(),
+    cert: fs.readFileSync('/path/to/client-certificates/postgresql.crt').toString(),    
+  }
+});
+```
+
 ### Change size of the pool
 
 ```js

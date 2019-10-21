@@ -1,3 +1,8 @@
+### 2.0.2
+
+  * Add ssl typings to pool constructor options
+  * Add 'aws-rds' ssl shorthand for secure RDS TLS settings
+
 ### 2.0.1
 
   * Move to https://github.com/postgres-pool/postgres-pool
