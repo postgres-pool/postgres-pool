@@ -54,7 +54,7 @@
     "node": ">=10"
   },
   "devDependencies": {
-    "@types/chai": "4.2.3",
+    "@types/chai": "4.2.5",
     "@types/chai-as-promised": "7.1.2",
     "@types/faker": "4.1.6",
     "@types/mocha": "5.2.7",
