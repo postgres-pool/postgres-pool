@@ -1,3 +1,8 @@
+### 2.0.3
+
+  * Update npms
+  * Make typescript lint rules more strict
+
 ### 2.0.2
 
   * Add ssl typings to pool constructor options
@@ -13,8 +18,8 @@
   * Drop node 8 support
   * Update npms
   * Clear pool connection timeout timer immediately after getting connection from pool
-  * Clear connection timeout timer immediately after successful connect() 
-  * Try to destroy socket connection before calling client.end() on connection error 
+  * Clear connection timeout timer immediately after successful connect()
+  * Try to destroy socket connection before calling client.end() on connection error
 
 ### 1.4.1
 
@@ -24,22 +29,22 @@
 
   * Updated to typescript 3.5
   * Updated npms
-  * Include type definitions as "dependencies" instead of "devDependencies"  
+  * Include type definitions as "dependencies" instead of "devDependencies"
 
 ### 1.3.0
 
   * Updated to typescript 3.4
   * Updated dependencies
   * Added support for named parameters (namedParameterFindRegExp, getNamedParameterReplaceRegExp, and getNamedParameterName)
-    
+
     Notes:
 
       * Named parameters are only used if an object is passed as the value parameter to the query function
-        
+
         ```js
         myPool.query('select * from foobar where id=@id', { id: '123' });
         ```
-        
+
       * By default, the named parameter syntax is `@parameterName`.
 
 ### 1.2.0

@@ -1,6 +1,7 @@
 import { EventEmitter } from 'events';
 import {
   Client,
+  Connection,
   QueryResult,
   QueryResultRow,
 } from 'pg';
@@ -133,6 +134,10 @@ export type PoolClient = Client & {
   errorHandler: (err: Error) => void;
 };
 
+export type PoolClientWithConnection = PoolClient & {
+  connection?: Connection;
+};
+
 interface PoolEvents {
   connectionRequestQueued: () => void;
   connectionRequestDequeued: () => void;
@@ -221,7 +226,7 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
       this.options.ssl = {
         rejectUnauthorized: true,
         // eslint-disable-next-line security/detect-non-literal-fs-filename
-        ca: fs.readFileSync(path.join(__dirname, './certs/rds-combined-ca-bundle.pem')),
+        ca: fs.readFileSync(path.join(__dirname, './certs/rds-combined-ca-bundle.pem')).toString(),
         minVersion: 'TLSv1.2',
       };
     } else {
@@ -256,7 +261,8 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
     if (this.connections.length < this.options.poolSize) {
       this.connections.push(id);
 
-      return await this._createConnection(id);
+      const connection = await this._createConnection(id);
+      return connection;
     }
 
     this.emit('connectionRequestQueued');
@@ -298,21 +304,21 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
    * @param {string} text
    * @param {object} values - Keys represent named parameters in the query
    */
-  public async query<R extends QueryResultRow = any>(text: string, values: { [index: string]: any }): Promise<QueryResult<R>>;
+  public async query<TRow extends QueryResultRow = any>(text: string, values: { [index: string]: any }): Promise<QueryResult<TRow>>;
 
   /**
    * Gets a connection to the database and executes the specified query. This method will release the connection back to the pool when the query has finished.
    * @param {string} text
    * @param {Array} values
    */
-  public async query<R extends QueryResultRow = any>(text: string, values?: any[]): Promise<QueryResult<R>>;
+  public async query<TRow extends QueryResultRow = any>(text: string, values?: any[]): Promise<QueryResult<TRow>>;
 
   /**
    * Gets a connection to the database and executes the specified query. This method will release the connection back to the pool when the query has finished.
    * @param {string} text
    * @param {object|Array} values - If an object, keys represent named parameters in the query
    */
-  public query<R extends QueryResultRow = any>(text: string, values?: any[] | { [index: string]: any }): Promise<QueryResult<R>> {
+  public query<TRow extends QueryResultRow = any>(text: string, values?: any[] | { [index: string]: any }): Promise<QueryResult<TRow>> {
     /* eslint-enable @typescript-eslint/no-explicit-any */
     if (!values || Array.isArray(values)) {
       return this._query(text, values);
@@ -354,7 +360,7 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
   /**
    * Drains the pool of all active client connections. Used to shut down the pool down cleanly
    */
-  public end() {
+  public end(): void {
     this.isEnding = true;
 
     for (const idleConnection of this.idleConnections) {
@@ -363,12 +369,13 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private async _query<R extends QueryResultRow = any>(text: string, values?: any[], readOnlyStartTime?: [number, number]): Promise<QueryResult<R>> {
+  private async _query<TRow extends QueryResultRow = any>(text: string, values?: any[], readOnlyStartTime?: [number, number]): Promise<QueryResult<TRow>> {
     const connection = await this.connect();
     let removeConnection = false;
     let timeoutError: Error | undefined;
     try {
-      return await connection.query<R>(text, values);
+      const results = await connection.query<TRow>(text, values);
+      return results;
     } catch (ex) {
       if (this.options.reconnectOnReadOnlyTransactionError && /cannot execute [\s\w]+ in a read-only transaction/igu.test(ex.message)) {
         timeoutError = ex;
@@ -405,11 +412,12 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
     const diff = process.hrtime(readOnlyStartTime);
     const timeSinceLastRun = Number(((diff[0] * 1e3) + (diff[1] * 1e-6)).toFixed(3));
 
-    if (timeSinceLastRun > this.options.readOnlyTransactionReconnectTimeoutMillis) {
+    if (timeoutError && timeSinceLastRun > this.options.readOnlyTransactionReconnectTimeoutMillis) {
       throw timeoutError;
     }
 
-    return await this._query(text, values, readOnlyStartTime);
+    const results = await this._query(text, values, readOnlyStartTime);
+    return results;
   }
 
   /**
@@ -425,7 +433,7 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
      *
      * @param {boolean} [removeConnection=false]
      */
-    client.release = (removeConnection = false) => {
+    client.release = (removeConnection = false): void => {
       if (this.isEnding || removeConnection) {
         this._removeConnection(client);
         return;
@@ -448,7 +456,7 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
       }
     };
 
-    client.errorHandler = (err: Error) => {
+    client.errorHandler = (err: Error): void => {
       this._removeConnection(client);
       this.emit('error', err, client);
     };
@@ -457,7 +465,7 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
     let connectionTimeoutTimer: NodeJS.Timeout | null = null;
     try {
       await Promise.race([
-        (async function connectClient() {
+        (async function connectClient(): Promise<void> {
           try {
             await client.connect();
           } finally {
@@ -468,7 +476,7 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
         }()),
         // eslint-disable-next-line promise/param-names
         new Promise((_, reject) => {
-          connectionTimeoutTimer = setTimeout(() => {
+          connectionTimeoutTimer = setTimeout((): void => {
             reject(new Error('Timed out trying to connect to postgres'));
           }, this.options.connectionTimeoutMillis);
         }),
@@ -476,11 +484,10 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
 
       this.emit('connectionAddedToPool');
     } catch (ex) {
-      // @ts-ignore
-      if (client.connection) {
+      const { connection } = client as PoolClientWithConnection;
+      if (connection) {
         // Force a disconnect of the socket, if it exists.
-        // @ts-ignore
-        client.connection.stream.destroy();
+        connection.stream.destroy();
       }
 
       await client.end();
@@ -495,7 +502,7 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
 
         if (this.options.waitForDatabaseStartupMillis > 0) {
           await new Promise((resolve) => {
-            setTimeout(() => {
+            setTimeout((): void => {
               resolve();
             }, this.options.waitForDatabaseStartupMillis);
           });
@@ -508,7 +515,8 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
           throw ex;
         }
 
-        return await this._createConnection(connectionId, databaseStartupStartTime);
+        const connectionAfterRetry = await this._createConnection(connectionId, databaseStartupStartTime);
+        return connectionAfterRetry;
       }
 
       throw ex;
@@ -521,10 +529,12 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
    * Removes the client connection from the pool and tries to gracefully shut it down
    * @param {PoolClient} client
    */
-  private _removeConnection(client: PoolClient) {
+  private _removeConnection(client: PoolClient): void {
     client.removeListener('error', client.errorHandler);
     // Ignore any errors when ending the connection
-    client.on('error', () => {});
+    client.on('error', (): void => {
+      // NOOP
+    });
 
     if (client.idleTimeoutTimer) {
       clearTimeout(client.idleTimeoutTimer);
