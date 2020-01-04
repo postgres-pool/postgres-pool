@@ -7,7 +7,8 @@ module.exports = {
     'mocha',
     'promise',
     'security',
-    '@typescript-eslint'
+    'import',
+    '@typescript-eslint',
   ],
   extends: [
     'eslint:recommended',
@@ -175,8 +176,10 @@ module.exports = {
     extends: [
       'eslint:recommended',
       'airbnb-base',
-      'plugin:@typescript-eslint/recommended',
       'plugin:import/typescript',
+      'plugin:@typescript-eslint/eslint-recommended',
+      'plugin:@typescript-eslint/recommended',
+      'plugin:@typescript-eslint/recommended-requiring-type-checking',
     ],
     rules: {
       'class-methods-use-this': 'off',
@@ -209,7 +212,7 @@ module.exports = {
       '@typescript-eslint/consistent-type-definitions': 'error',
       '@typescript-eslint/no-extraneous-class': 'error',
       '@typescript-eslint/explicit-function-return-type': 'error',
-      '@typescript-eslint/explicit-member-accessibility': ["error"],
+      '@typescript-eslint/explicit-member-accessibility': ['error'],
       '@typescript-eslint/generic-type-naming': 'error',
       '@typescript-eslint/interface-name-prefix': ['error', 'never'],
       '@typescript-eslint/member-ordering': ['error', {
