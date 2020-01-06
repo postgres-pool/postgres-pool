@@ -1,3 +1,7 @@
+### 2.0.4
+
+  * Support query_timeout and statement_timeout pg.Client config settings
+
 ### 2.0.3
 
   * Update npms

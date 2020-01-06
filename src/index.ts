@@ -87,6 +87,14 @@ export interface PoolOptionsBase {
    * Gets the name of a named parameter without the symbols. This should correspond to the key in the query value object
    */
   getNamedParameterName: (namedParameterWithSymbols: string) => string;
+  /**
+   * Throw an error if a query takes longer than the specified milliseconds
+   */
+  query_timeout?: number;
+  /**
+   * Abort a query statement if it takes longer than the specified milliseconds
+   */
+  statement_timeout?: number;
 }
 
 export interface PoolOptionsExplicit {
@@ -108,6 +116,8 @@ export interface PoolOptionsExplicit {
   namedParameterFindRegExp?: RegExp;
   getNamedParameterReplaceRegExp?: (namedParameter: string) => RegExp;
   getNamedParameterName?: (namedParameterWithSymbols: string) => string;
+  query_timeout?: number;
+  statement_timeout?: number;
 }
 
 export interface PoolOptionsImplicit {
@@ -125,6 +135,8 @@ export interface PoolOptionsImplicit {
   namedParameterFindRegExp?: RegExp;
   getNamedParameterReplaceRegExp?: (namedParameter: string) => RegExp;
   getNamedParameterName?: (namedParameterWithSymbols: string) => string;
+  query_timeout?: number;
+  statement_timeout?: number;
 }
 
 export type PoolClient = Client & {
