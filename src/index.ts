@@ -273,8 +273,18 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
     if (this.connections.length < this.options.poolSize) {
       this.connections.push(id);
 
-      const connection = await this._createConnection(id);
-      return connection;
+      try {
+        const connection = await this._createConnection(id);
+        return connection;
+      } catch (ex) {
+        // Remove the connection id since we failed to connect
+        const connectionIndex = this.connections.indexOf(id);
+        if (connectionIndex > -1) {
+          this.connections.splice(connectionIndex, 1);
+        }
+
+        throw ex;
+      }
     }
 
     this.emit('connectionRequestQueued');
@@ -299,6 +309,7 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
         connectionTimeoutTimer = setTimeout(() => {
           this.connectionQueueEventEmitter.removeAllListeners(`connection_${id}`);
 
+          // Remove this connection attempt from the connection queue
           const index = this.connectionQueue.indexOf(id);
           if (index > -1) {
             this.connectionQueue.splice(index, 1);

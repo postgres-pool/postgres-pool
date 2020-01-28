@@ -8,7 +8,10 @@ Connection pool implementation for [pg](https://node-postgres.com/). Compatible 
 
 ### Why?
 
-There were some connection timeout issues that we encountered with pg-pool and the npm was not being updated. Typescript was used to enforce type safety and promises are preferred over callbacks.
+* There were some connection timeout issues that we encountered with pg-pool and the npm was not being updated.
+* [Added graceful cluster failover](#handle-cluster-failover-gracefully)
+* [Added default AWS TLS settings via `ssl='aws-rds'`](#aws-rds-specific-tls-settings-for-connections)
+* Typescript is used to enforce type safety and promises are preferred over callbacks.
 
 ## Getting Started
 
@@ -144,7 +147,7 @@ const pool = new Pool({
     rejectUnauthorized: false,
     ca: fs.readFileSync('/path/to/server-certificates/root.crt').toString(),
     key: fs.readFileSync('/path/to/client-key/postgresql.key').toString(),
-    cert: fs.readFileSync('/path/to/client-certificates/postgresql.crt').toString(),    
+    cert: fs.readFileSync('/path/to/client-certificates/postgresql.crt').toString(),
   }
 });
 ```
@@ -173,25 +176,25 @@ const pool = new Pool({
 });
 ```
 
-### Handle cluster failover gracefully 
+### Handle cluster failover gracefully
 
 > When a cluster has a failover event, promoting a read-replica to master, there can be a couple sets of errors that
 > happen with already established connections in the pool as well as new connections before
 > the cluster is available in a ready state.
 >
-> By default, when making a new postgres connection and the server throws an error with a message like: 
-> `the database system is starting up`, the postgres-pool library will attempt to reconnect 
+> By default, when making a new postgres connection and the server throws an error with a message like:
+> `the database system is starting up`, the postgres-pool library will attempt to reconnect
 > (with no delay between attempts) for a maximum of 90s.
 >
 > Similarly, if a non-readonly query (create/update/delete/etc) is executed on a readonly connection, the server  will
-> throw an error with a message like: `cannot execute UPDATE in a read-only transaction`. This can occur when a 
-> connection to a db cluster is established and the cluster fails over before the connection is terminated, thus the 
+> throw an error with a message like: `cannot execute UPDATE in a read-only transaction`. This can occur when a
+> connection to a db cluster is established and the cluster fails over before the connection is terminated, thus the
 > connected server becomes a read-replica instead of the expected master.
 > The postgres-pool library will attempt to reconnect (with no delay between attempts) for a maximum of 90s and will
 > try to execute the query on the new connection.
 >
-> Defaults can be overridden and this behavior can be disabled entirely by specifying different values for the 
-> pool options below: 
+> Defaults can be overridden and this behavior can be disabled entirely by specifying different values for the
+> pool options below:
 
 ```js
 const { Pool } = require('postgres-pool');

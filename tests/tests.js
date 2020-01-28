@@ -70,6 +70,31 @@ describe('#connect()', () => {
 
     endStub.calledOnce.should.equal(true);
   });
+  it('should not consume a pool connection when connecting times out', async () => {
+    const connectStub = sinon.stub(Client.prototype, 'connect').returns(new Promise((resolve) => {
+      setTimeout(resolve, 100);
+    }));
+    const endStub = sinon.stub(Client.prototype, 'end').returns(true);
+
+    const pool = new Pool({
+      connectionString: 'postgres://foo:bar@baz:1234/xur',
+      connectionTimeoutMillis: 1,
+    });
+
+    try {
+      await pool.connect();
+      false.should.equal(true);
+    } catch (ex) {
+      ex.message.should.equal('Timed out trying to connect to postgres');
+    } finally {
+      connectStub.restore();
+      endStub.restore();
+    }
+
+    pool.waitingCount.should.equal(0);
+    pool.idleCount.should.equal(0);
+    pool.totalCount.should.equal(0);
+  });
   describe('retryQueryWhenDatabaseIsStarting', () => {
     it('should not try to reconnect if reconnectOnDatabaseIsStartingError=false and "the database system is starting up" is thrown', async () => {
       const pool = new Pool({

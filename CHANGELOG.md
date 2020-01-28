@@ -1,3 +1,9 @@
+### 2.0.5
+
+  * Fix a pool connection not being released when connect timed out
+  * Include list of differences from pg-pool in README
+  * Update npms
+
 ### 2.0.4
 
   * Support query_timeout and statement_timeout pg.Client config settings
