@@ -76,6 +76,22 @@ export interface PoolOptionsBase {
    */
   readOnlyTransactionReconnectTimeoutMillis: number;
   /**
+   * If the query should be retried when the database throws "Client has encountered a connection error and is not queryable"
+   * NOTE: This typically happens during a fail over scenario with the cluster
+   */
+  reconnectOnConnectionError: boolean;
+  /**
+   * Milliseconds to wait between retry queries after receiving a connection error. Allows you to throttle
+   * how many retries should happen until connectionReconnectTimeoutMillis expires. A value of 0 will
+   * try reconnecting immediately.
+   */
+  waitForReconnectConnectionMillis: number;
+  /**
+   * If queries continually return "Client has encountered a connection error and is not queryable", this is the total number of
+   * milliseconds to wait until an error is thrown.
+   */
+  connectionReconnectTimeoutMillis: number;
+  /**
    * Specifies the regular expression to find named parameters in a query
    */
   namedParameterFindRegExp: RegExp;
@@ -113,6 +129,9 @@ export interface PoolOptionsExplicit {
   reconnectOnReadOnlyTransactionError?: boolean;
   waitForReconnectReadOnlyTransactionMillis?: number;
   readOnlyTransactionReconnectTimeoutMillis?: number;
+  reconnectOnConnectionError?: boolean;
+  waitForReconnectConnectionMillis?: number;
+  connectionReconnectTimeoutMillis?: number;
   namedParameterFindRegExp?: RegExp;
   getNamedParameterReplaceRegExp?: (namedParameter: string) => RegExp;
   getNamedParameterName?: (namedParameterWithSymbols: string) => string;
@@ -132,6 +151,9 @@ export interface PoolOptionsImplicit {
   reconnectOnReadOnlyTransactionError?: boolean;
   waitForReconnectReadOnlyTransactionMillis?: number;
   readOnlyTransactionReconnectTimeoutMillis?: number;
+  reconnectOnConnectionError?: boolean;
+  waitForReconnectConnectionMillis?: number;
+  connectionReconnectTimeoutMillis?: number;
   namedParameterFindRegExp?: RegExp;
   getNamedParameterReplaceRegExp?: (namedParameter: string) => RegExp;
   getNamedParameterName?: (namedParameterWithSymbols: string) => string;
@@ -159,6 +181,7 @@ interface PoolEvents {
   connectionRemovedFromIdlePool: () => void;
   idleConnectionActivated: () => void;
   queryDeniedForReadOnlyTransaction: () => void;
+  queryDeniedForConnectionError: () => void;
   waitingForDatabaseToStart: () => void;
   error: (error: Error, client?: PoolClient) => void;
 }
@@ -216,6 +239,9 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
       reconnectOnReadOnlyTransactionError: true,
       waitForReconnectReadOnlyTransactionMillis: 0,
       readOnlyTransactionReconnectTimeoutMillis: 90000,
+      reconnectOnConnectionError: true,
+      waitForReconnectConnectionMillis: 0,
+      connectionReconnectTimeoutMillis: 90000,
       namedParameterFindRegExp: /@([\w])+\b/g,
       getNamedParameterReplaceRegExp(namedParameter: string): RegExp {
         // eslint-disable-next-line security/detect-non-literal-regexp
@@ -392,16 +418,20 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private async _query<TRow extends QueryResultRow = any>(text: string, values?: any[], readOnlyStartTime?: [number, number]): Promise<QueryResult<TRow>> {
+  private async _query<TRow extends QueryResultRow = any>(text: string, values?: any[], reconnectQueryStartTime?: [number, number]): Promise<QueryResult<TRow>> {
     const connection = await this.connect();
     let removeConnection = false;
     let timeoutError: Error | undefined;
+    let connectionError: Error | undefined;
     try {
       const results = await connection.query<TRow>(text, values);
       return results;
     } catch (ex) {
       if (this.options.reconnectOnReadOnlyTransactionError && /cannot execute [\s\w]+ in a read-only transaction/igu.test(ex.message)) {
         timeoutError = ex;
+        removeConnection = true;
+      } else if (this.options.reconnectOnConnectionError && /Client has encountered a connection error and is not queryable/igu.test(ex.message)) {
+        connectionError = ex;
         removeConnection = true;
       } else {
         throw ex;
@@ -412,19 +442,24 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
 
     // If we get here, that means that the query was attempted with a read-only connection.
     // This can happen when the cluster fails over to a read-replica
-    this.emit('queryDeniedForReadOnlyTransaction');
+    if (timeoutError) {
+      this.emit('queryDeniedForReadOnlyTransaction');
+    } else if (connectionError) {
+      // This can happen when a cluster fails over
+      this.emit('queryDeniedForConnectionError');
+    }
 
     // Clear all idle connections and try the query again with a fresh connection
     for (const idleConnection of this.idleConnections) {
       this._removeConnection(idleConnection);
     }
 
-    if (!readOnlyStartTime) {
+    if (!reconnectQueryStartTime) {
       // eslint-disable-next-line no-param-reassign
-      readOnlyStartTime = process.hrtime();
+      reconnectQueryStartTime = process.hrtime();
     }
 
-    if (this.options.waitForReconnectReadOnlyTransactionMillis > 0) {
+    if (timeoutError && this.options.waitForReconnectReadOnlyTransactionMillis > 0) {
       await new Promise((resolve) => {
         setTimeout(() => {
           resolve();
@@ -432,14 +467,26 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
       });
     }
 
-    const diff = process.hrtime(readOnlyStartTime);
+    if (connectionError && this.options.waitForReconnectConnectionMillis > 0) {
+      await new Promise((resolve) => {
+        setTimeout(() => {
+          resolve();
+        }, this.options.waitForReconnectConnectionMillis);
+      });
+    }
+
+    const diff = process.hrtime(reconnectQueryStartTime);
     const timeSinceLastRun = Number(((diff[0] * 1e3) + (diff[1] * 1e-6)).toFixed(3));
 
     if (timeoutError && timeSinceLastRun > this.options.readOnlyTransactionReconnectTimeoutMillis) {
       throw timeoutError;
     }
 
-    const results = await this._query(text, values, readOnlyStartTime);
+    if (connectionError && timeSinceLastRun > this.options.connectionReconnectTimeoutMillis) {
+      throw connectionError;
+    }
+
+    const results = await this._query(text, values, reconnectQueryStartTime);
     return results;
   }
 

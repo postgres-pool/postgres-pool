@@ -1,3 +1,13 @@
+### 2.1.0
+
+  * Add settings for connection errors during queries and ability to reconnect:
+    * Pool options:
+        * `reconnectOnConnectionError` - true
+        * `waitForReconnectConnectionMillis` - 0ms
+        * `connectionReconnectTimeoutMillis` - 90,000ms
+    * Event: `queryDeniedForConnectionError`
+  * Update npms
+
 ### 2.0.5
 
   * Fix a pool connection not being released when connect timed out
