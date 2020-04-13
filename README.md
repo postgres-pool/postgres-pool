@@ -118,7 +118,7 @@ const pool = new Pool({
 > ```js
 > ssl: {
 >   rejectUnauthorized: true,
->   ca: fs.readFileSync('./certs/rds-combined-ca-bundle.pem'),
+>   ca: fs.readFileSync('./certs/rds-ca-2019-root.pem'),
 >   minVersion: 'TLSv1.2',
 > }
 > ```

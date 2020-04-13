@@ -264,7 +264,7 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
       this.options.ssl = {
         rejectUnauthorized: true,
         // eslint-disable-next-line security/detect-non-literal-fs-filename
-        ca: fs.readFileSync(path.join(__dirname, './certs/rds-combined-ca-bundle.pem')).toString(),
+        ca: fs.readFileSync(path.join(__dirname, './certs/rds-ca-2019-root.pem')).toString(),
         minVersion: 'TLSv1.2',
       };
     } else {
