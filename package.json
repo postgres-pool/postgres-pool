@@ -1,6 +1,6 @@
 {
   "name": "postgres-pool",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Node postgres connection pool implementation for node-pg",
   "main": "index.js",
   "types": "index.d.ts",
@@ -44,37 +44,37 @@
   },
   "homepage": "https://github.com/postgres-pool/postgres-pool#readme",
   "dependencies": {
-    "@types/pg": "^7.x.x",
-    "@types/uuid": "^3.x.x",
-    "pg": "~7.17.1",
+    "@types/pg": "7.14.3",
+    "@types/uuid": "7.0.2",
+    "pg": "8.0.2",
     "strict-event-emitter-types": "~2.0.0",
-    "uuid": "^3.x.x"
+    "uuid": "7.0.3"
   },
   "engines": {
     "node": ">=10"
   },
   "devDependencies": {
-    "@types/chai": "4.2.9",
+    "@types/chai": "4.2.11",
     "@types/chai-as-promised": "7.1.2",
-    "@types/faker": "4.1.9",
-    "@types/mocha": "7.0.1",
-    "@types/sinon": "7.5.1",
-    "@typescript-eslint/eslint-plugin": "2.19.2",
-    "@typescript-eslint/parser": "2.19.2",
+    "@types/faker": "4.1.11",
+    "@types/mocha": "7.0.2",
+    "@types/sinon": "9.0.0",
+    "@typescript-eslint/eslint-plugin": "2.27.0",
+    "@typescript-eslint/parser": "2.27.0",
     "chai": "~4.2.0",
     "chai-as-promised": "~7.1.1",
     "eslint": "6.8.0",
-    "eslint-config-airbnb-base": "14.0.0",
-    "eslint-plugin-import": "2.20.1",
-    "eslint-plugin-jsdoc": "21.0.0",
-    "eslint-plugin-mocha": "6.2.2",
+    "eslint-config-airbnb-base": "14.1.0",
+    "eslint-plugin-import": "2.20.2",
+    "eslint-plugin-jsdoc": "23.0.0",
+    "eslint-plugin-mocha": "6.3.0",
     "eslint-plugin-promise": "4.2.1",
     "eslint-plugin-security": "1.4.0",
     "faker": "~4.1.0",
     "husky": "3.1.0",
-    "lint-staged": "9.5.0",
-    "mocha": "7.0.1",
-    "sinon": "8.1.1",
-    "typescript": "3.7.5"
+    "lint-staged": "10.1.3",
+    "mocha": "7.1.1",
+    "sinon": "9.0.2",
+    "typescript": "3.8.3"
   }
 }

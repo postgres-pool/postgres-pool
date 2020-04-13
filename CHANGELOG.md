@@ -1,3 +1,7 @@
+### 2.1.1
+
+  * Update npms
+
 ### 2.1.0
 
   * Add settings for connection errors during queries and ability to reconnect:
