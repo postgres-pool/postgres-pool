@@ -1,3 +1,7 @@
+### 3.1.0
+
+  * Update npms
+
 ### 3.0.0
 
   * Update AWS TLS to use rds-ca-2019-root.pem root certificate
