@@ -1,3 +1,7 @@
+### 3.1.1
+
+  * Update Typescript npm
+
 ### 3.1.0
 
   * Update npms
