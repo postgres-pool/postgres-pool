@@ -1,6 +1,6 @@
 {
   "name": "postgres-pool",
-  "version": "3.1.1",
+  "version": "3.1.2",
   "description": "Node postgres connection pool implementation for node-pg",
   "main": "index.js",
   "types": "index.d.ts",
@@ -48,7 +48,7 @@
     "@types/uuid": "8.0.0",
     "pg": "8.2.1",
     "strict-event-emitter-types": "~2.0.0",
-    "uuid": "8.0.0"
+    "uuid": "8.1.0"
   },
   "engines": {
     "node": ">=10"
@@ -58,23 +58,23 @@
     "@types/chai-as-promised": "7.1.2",
     "@types/faker": "4.1.12",
     "@types/mocha": "7.0.2",
-    "@types/sinon": "9.0.3",
-    "@typescript-eslint/eslint-plugin": "2.34.0",
-    "@typescript-eslint/parser": "2.34.0",
+    "@types/sinon": "9.0.4",
+    "@typescript-eslint/eslint-plugin": "3.2.0",
+    "@typescript-eslint/parser": "3.2.0",
     "chai": "~4.2.0",
     "chai-as-promised": "~7.1.1",
-    "eslint": "7.0.0",
+    "eslint": "7.2.0",
     "eslint-config-airbnb-base": "14.1.0",
-    "eslint-plugin-import": "2.20.2",
-    "eslint-plugin-jsdoc": "25.4.2",
-    "eslint-plugin-mocha": "7.0.0",
+    "eslint-plugin-import": "2.21.1",
+    "eslint-plugin-jsdoc": "27.0.4",
+    "eslint-plugin-mocha": "7.0.1",
     "eslint-plugin-promise": "4.2.1",
     "eslint-plugin-security": "1.4.0",
     "faker": "~4.1.0",
     "husky": "4.2.5",
-    "lint-staged": "10.2.4",
-    "mocha": "7.1.2",
+    "lint-staged": "10.2.9",
+    "mocha": "7.2.0",
     "sinon": "9.0.2",
-    "typescript": "3.9.3"
+    "typescript": "3.9.5"
   }
 }

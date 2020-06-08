@@ -182,6 +182,7 @@ module.exports = {
       'plugin:@typescript-eslint/recommended-requiring-type-checking',
     ],
     rules: {
+      'camelcase': 'off',
       'class-methods-use-this': 'off',
       'indent': 'off',
       'max-len': 'off',
@@ -207,14 +208,12 @@ module.exports = {
       '@typescript-eslint/array-type': ['error', { default: 'array' }],
       '@typescript-eslint/await-thenable': 'error',
       '@typescript-eslint/adjacent-overload-signatures': 'error',
-      '@typescript-eslint/class-name-casing': 'error',
+      '@typescript-eslint/naming-convention': 'error',
       '@typescript-eslint/consistent-type-assertions': 'error',
       '@typescript-eslint/consistent-type-definitions': 'error',
       '@typescript-eslint/no-extraneous-class': 'error',
       '@typescript-eslint/explicit-function-return-type': 'error',
       '@typescript-eslint/explicit-member-accessibility': ['error'],
-      '@typescript-eslint/generic-type-naming': 'error',
-      '@typescript-eslint/interface-name-prefix': ['error', 'never'],
       '@typescript-eslint/member-ordering': ['error', {
         default: [
           // Index signature

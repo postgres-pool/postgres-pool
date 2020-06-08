@@ -106,10 +106,12 @@ export interface PoolOptionsBase {
   /**
    * Throw an error if a query takes longer than the specified milliseconds
    */
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   query_timeout?: number;
   /**
    * Abort a query statement if it takes longer than the specified milliseconds
    */
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   statement_timeout?: number;
 }
 
@@ -135,7 +137,9 @@ export interface PoolOptionsExplicit {
   namedParameterFindRegExp?: RegExp;
   getNamedParameterReplaceRegExp?: (namedParameter: string) => RegExp;
   getNamedParameterName?: (namedParameterWithSymbols: string) => string;
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   query_timeout?: number;
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   statement_timeout?: number;
 }
 
@@ -157,7 +161,9 @@ export interface PoolOptionsImplicit {
   namedParameterFindRegExp?: RegExp;
   getNamedParameterReplaceRegExp?: (namedParameter: string) => RegExp;
   getNamedParameterName?: (namedParameterWithSymbols: string) => string;
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   query_timeout?: number;
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   statement_timeout?: number;
 }
 
@@ -427,11 +433,12 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
       const results = await connection.query<TRow>(text, values);
       return results;
     } catch (ex) {
-      if (this.options.reconnectOnReadOnlyTransactionError && /cannot execute [\s\w]+ in a read-only transaction/igu.test(ex.message)) {
-        timeoutError = ex;
+      const { message } = ex as Error;
+      if (this.options.reconnectOnReadOnlyTransactionError && /cannot execute [\s\w]+ in a read-only transaction/igu.test(message)) {
+        timeoutError = ex as Error;
         removeConnection = true;
-      } else if (this.options.reconnectOnConnectionError && /Client has encountered a connection error and is not queryable/igu.test(ex.message)) {
-        connectionError = ex;
+      } else if (this.options.reconnectOnConnectionError && /Client has encountered a connection error and is not queryable/igu.test(message)) {
+        connectionError = ex as Error;
         removeConnection = true;
       } else {
         throw ex;
@@ -562,7 +569,8 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
 
       await client.end();
 
-      if (this.options.reconnectOnDatabaseIsStartingError && /the database system is starting up/igu.test(ex.message)) {
+      const { message } = ex as Error;
+      if (this.options.reconnectOnDatabaseIsStartingError && /the database system is starting up/igu.test(message)) {
         this.emit('waitingForDatabaseToStart');
 
         if (!databaseStartupStartTime) {
@@ -622,7 +630,8 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
     }
 
     client.end().catch((ex) => {
-      if (!/This socket has been ended by the other party/igu.test(ex.message)) {
+      const { message } = ex as Error;
+      if (!/This socket has been ended by the other party/igu.test(message)) {
         this.emit('error', ex);
       }
     });
