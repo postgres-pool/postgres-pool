@@ -44,6 +44,20 @@ export interface PoolOptionsBase {
    */
   connectionTimeoutMillis: number;
   /**
+   * Number of retries to attempt when there's an error matching `retryConnectionErrorCodes`. A value of 0
+   * will disable connection retry.
+   */
+  retryConnectionMaxRetries: number;
+  /**
+   * Milliseconds to wait between retry connection attempts after receiving a connection error with code
+   * that matches `retryConnectionErrorCodes`. A value of 0 will try reconnecting immediately.
+   */
+  retryConnectionWaitMillis: number;
+  /**
+   * Error codes to trigger a connection retry. Eg. ENOTFOUND
+   */
+  retryConnectionErrorCodes: string[];
+  /**
    * If connect should be retried when the database throws "the database system is starting up"
    * NOTE: This typically happens during a fail over scenario when a read-replica is being promoted to master
    */
@@ -125,6 +139,9 @@ export interface PoolOptionsExplicit {
   idleTimeoutMillis?: number;
   waitForAvailableConnectionTimeoutMillis?: number;
   connectionTimeoutMillis?: number;
+  retryConnectionMaxRetries?: number;
+  retryConnectionWaitMillis?: number;
+  retryConnectionErrorCodes?: string[];
   reconnectOnDatabaseIsStartingError?: boolean;
   waitForDatabaseStartupMillis?: number;
   databaseStartupTimeoutMillis?: number;
@@ -149,6 +166,9 @@ export interface PoolOptionsImplicit {
   idleTimeoutMillis?: number;
   waitForAvailableConnectionTimeoutMillis?: number;
   connectionTimeoutMillis?: number;
+  retryConnectionMaxRetries?: number;
+  retryConnectionWaitMillis?: number;
+  retryConnectionErrorCodes?: string[];
   reconnectOnDatabaseIsStartingError?: boolean;
   waitForDatabaseStartupMillis?: number;
   databaseStartupTimeoutMillis?: number;
@@ -189,6 +209,7 @@ interface PoolEvents {
   queryDeniedForReadOnlyTransaction: () => void;
   queryDeniedForConnectionError: () => void;
   waitingForDatabaseToStart: () => void;
+  retryConnectionOnError: () => void;
   error: (error: Error, client?: PoolClient) => void;
 }
 
@@ -239,6 +260,9 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
       idleTimeoutMillis: 10000,
       waitForAvailableConnectionTimeoutMillis: 90000,
       connectionTimeoutMillis: 30000,
+      retryConnectionMaxRetries: 5,
+      retryConnectionWaitMillis: 100,
+      retryConnectionErrorCodes: ['ENOTFOUND'],
       reconnectOnDatabaseIsStartingError: true,
       waitForDatabaseStartupMillis: 0,
       databaseStartupTimeoutMillis: 90000,
@@ -500,9 +524,10 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
   /**
    * Creates a new client connection to add to the pool
    * @param {string} connectionId
+   * @param {number} [retryAttempt=0]
    * @param {[number,number]} [databaseStartupStartTime] - hrtime when the db was first listed as starting up
    */
-  private async _createConnection(connectionId: string, databaseStartupStartTime?: [number, number]): Promise<PoolClient> {
+  private async _createConnection(connectionId: string, retryAttempt = 0, databaseStartupStartTime?: [number, number]): Promise<PoolClient> {
     const client = new Client(this.options) as PoolClient;
     client.uniqueId = connectionId;
     /**
@@ -569,7 +594,36 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
 
       await client.end();
 
-      const { message } = ex as Error;
+      const { message, code } = ex as Error & { code: string };
+      let retryConnection = false;
+      if (this.options.retryConnectionMaxRetries) {
+        if (code) {
+          retryConnection = this.options.retryConnectionErrorCodes.includes(code);
+        } else {
+          for (const errorCode of this.options.retryConnectionErrorCodes) {
+            if (message.includes(errorCode)) {
+              retryConnection = true;
+              break;
+            }
+          }
+        }
+      }
+
+      if (retryConnection && retryAttempt < this.options.retryConnectionMaxRetries) {
+        this.emit('retryConnectionOnError');
+
+        if (this.options.retryConnectionWaitMillis > 0) {
+          await new Promise((resolve) => {
+            setTimeout((): void => {
+              resolve();
+            }, this.options.retryConnectionWaitMillis);
+          });
+        }
+
+        const connectionAfterRetry = await this._createConnection(connectionId, retryAttempt + 1, databaseStartupStartTime);
+        return connectionAfterRetry;
+      }
+
       if (this.options.reconnectOnDatabaseIsStartingError && /the database system is starting up/igu.test(message)) {
         this.emit('waitingForDatabaseToStart');
 
@@ -593,7 +647,7 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
           throw ex;
         }
 
-        const connectionAfterRetry = await this._createConnection(connectionId, databaseStartupStartTime);
+        const connectionAfterRetry = await this._createConnection(connectionId, 0, databaseStartupStartTime);
         return connectionAfterRetry;
       }
 

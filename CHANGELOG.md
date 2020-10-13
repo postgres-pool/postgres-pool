@@ -1,3 +1,8 @@
+### 3.2.0
+
+  * Add options to retry connection on error (eg. ENOTFOUND)
+  * Update npms
+
 ### 3.1.4
 
   * Update npms
