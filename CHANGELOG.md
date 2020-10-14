@@ -1,3 +1,7 @@
+### 3.2.1
+
+  * Format code with prettier
+
 ### 3.2.0
 
   * Add options to retry connection on error (eg. ENOTFOUND)

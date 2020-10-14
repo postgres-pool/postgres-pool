@@ -1,15 +1,12 @@
 import { EventEmitter } from 'events';
-import {
-  Client,
-  Connection,
-  QueryResult,
-  QueryResultRow,
-} from 'pg';
-import { StrictEventEmitter } from 'strict-event-emitter-types';
-import { v4 } from 'uuid';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ConnectionOptions } from 'tls';
+import type { ConnectionOptions } from 'tls';
+
+import type { Connection, QueryResult, QueryResultRow } from 'pg';
+import { Client } from 'pg';
+import type { StrictEventEmitter } from 'strict-event-emitter-types';
+import { v4 } from 'uuid';
 
 export interface SslSettings {
   /**
@@ -215,7 +212,7 @@ interface PoolEvents {
 
 type PoolEmitter = StrictEventEmitter<EventEmitter, PoolEvents>;
 
-export class Pool extends (EventEmitter as new() => PoolEmitter) {
+export class Pool extends (EventEmitter as new () => PoolEmitter) {
   /**
    * Gets the number of queued requests waiting for a database connection
    */
@@ -283,10 +280,7 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
       },
     };
 
-    const {
-      ssl,
-      ...otherOptions
-    } = options;
+    const { ssl, ...otherOptions } = options;
 
     this.options = { ...defaultOptions, ...otherOptions };
 
@@ -347,7 +341,7 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
     this.connectionQueue.push(id);
     let connectionTimeoutTimer: NodeJS.Timeout | null = null;
 
-    return await Promise.race([
+    return (await Promise.race([
       new Promise((resolve) => {
         this.connectionQueueEventEmitter.on(`connection_${id}`, (client: PoolClient) => {
           if (connectionTimeoutTimer) {
@@ -374,7 +368,7 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
           reject(new Error('Timed out while waiting for available connection in pool'));
         }, this.options.waitForAvailableConnectionTimeoutMillis);
       }),
-    ]) as PoolClient;
+    ])) as PoolClient;
   }
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -388,14 +382,14 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
   /**
    * Gets a connection to the database and executes the specified query. This method will release the connection back to the pool when the query has finished.
    * @param {string} text
-   * @param {Array} values
+   * @param {object[]} values
    */
   public async query<TRow extends QueryResultRow = any>(text: string, values?: any[]): Promise<QueryResult<TRow>>;
 
   /**
    * Gets a connection to the database and executes the specified query. This method will release the connection back to the pool when the query has finished.
    * @param {string} text
-   * @param {object|Array} values - If an object, keys represent named parameters in the query
+   * @param {object | object[]} values - If an object, keys represent named parameters in the query
    */
   public query<TRow extends QueryResultRow = any>(text: string, values?: any[] | { [index: string]: any }): Promise<QueryResult<TRow>> {
     /* eslint-enable @typescript-eslint/no-explicit-any */
@@ -458,10 +452,10 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
       return results;
     } catch (ex) {
       const { message } = ex as Error;
-      if (this.options.reconnectOnReadOnlyTransactionError && /cannot execute [\s\w]+ in a read-only transaction/igu.test(message)) {
+      if (this.options.reconnectOnReadOnlyTransactionError && /cannot execute [\s\w]+ in a read-only transaction/giu.test(message)) {
         timeoutError = ex as Error;
         removeConnection = true;
-      } else if (this.options.reconnectOnConnectionError && /Client has encountered a connection error and is not queryable/igu.test(message)) {
+      } else if (this.options.reconnectOnConnectionError && /Client has encountered a connection error and is not queryable/giu.test(message)) {
         connectionError = ex as Error;
         removeConnection = true;
       } else {
@@ -507,7 +501,7 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
     }
 
     const diff = process.hrtime(reconnectQueryStartTime);
-    const timeSinceLastRun = Number(((diff[0] * 1e3) + (diff[1] * 1e-6)).toFixed(3));
+    const timeSinceLastRun = Number((diff[0] * 1e3 + diff[1] * 1e-6).toFixed(3));
 
     if (timeoutError && timeSinceLastRun > this.options.readOnlyTransactionReconnectTimeoutMillis) {
       throw timeoutError;
@@ -575,7 +569,7 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
               clearTimeout(connectionTimeoutTimer);
             }
           }
-        }()),
+        })(),
         // eslint-disable-next-line promise/param-names
         new Promise((_, reject) => {
           connectionTimeoutTimer = setTimeout((): void => {
@@ -624,7 +618,7 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
         return connectionAfterRetry;
       }
 
-      if (this.options.reconnectOnDatabaseIsStartingError && /the database system is starting up/igu.test(message)) {
+      if (this.options.reconnectOnDatabaseIsStartingError && /the database system is starting up/giu.test(message)) {
         this.emit('waitingForDatabaseToStart');
 
         if (!databaseStartupStartTime) {
@@ -641,7 +635,7 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
         }
 
         const diff = process.hrtime(databaseStartupStartTime);
-        const timeSinceFirstConnectAttempt = Number(((diff[0] * 1e3) + (diff[1] * 1e-6)).toFixed(3));
+        const timeSinceFirstConnectAttempt = Number((diff[0] * 1e3 + diff[1] * 1e-6).toFixed(3));
 
         if (timeSinceFirstConnectAttempt > this.options.databaseStartupTimeoutMillis) {
           throw ex;
@@ -685,7 +679,7 @@ export class Pool extends (EventEmitter as new() => PoolEmitter) {
 
     client.end().catch((ex) => {
       const { message } = ex as Error;
-      if (!/This socket has been ended by the other party/igu.test(message)) {
+      if (!/This socket has been ended by the other party/giu.test(message)) {
         this.emit('error', ex);
       }
     });

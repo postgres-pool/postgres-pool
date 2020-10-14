@@ -1,12 +1,12 @@
 const chai = require('chai');
+const faker = require('faker');
+const { Client } = require('pg');
+const sinon = require('sinon');
+
+const { Pool } = require('../dist/index.js');
 
 chai.should();
 chai.use(require('chai-as-promised'));
-
-const faker = require('faker');
-const sinon = require('sinon');
-const { Client } = require('pg');
-const { Pool } = require('../dist/index.js');
 
 describe('#constructor()', () => {
   it('should pass connectionString to client', async () => {
@@ -26,9 +26,11 @@ describe('#constructor()', () => {
 
 describe('#connect()', () => {
   it('should throw if connecting exceeds connectionTimeoutMillis', async () => {
-    const connectStub = sinon.stub(Client.prototype, 'connect').returns(new Promise((resolve) => {
-      setTimeout(resolve, 100);
-    }));
+    const connectStub = sinon.stub(Client.prototype, 'connect').returns(
+      new Promise((resolve) => {
+        setTimeout(resolve, 100);
+      }),
+    );
     const endStub = sinon.stub(Client.prototype, 'end').returns(true);
 
     const pool = new Pool({
@@ -47,9 +49,11 @@ describe('#connect()', () => {
     }
   });
   it('should call end() if timeout during connecting', async () => {
-    const connectStub = sinon.stub(Client.prototype, 'connect').returns(new Promise((resolve) => {
-      setTimeout(resolve, 100);
-    }));
+    const connectStub = sinon.stub(Client.prototype, 'connect').returns(
+      new Promise((resolve) => {
+        setTimeout(resolve, 100);
+      }),
+    );
     const endStub = sinon.stub(Client.prototype, 'end').returns(true);
 
     const pool = new Pool({
@@ -70,9 +74,11 @@ describe('#connect()', () => {
     endStub.calledOnce.should.equal(true);
   });
   it('should not consume a pool connection when connecting times out', async () => {
-    const connectStub = sinon.stub(Client.prototype, 'connect').returns(new Promise((resolve) => {
-      setTimeout(resolve, 100);
-    }));
+    const connectStub = sinon.stub(Client.prototype, 'connect').returns(
+      new Promise((resolve) => {
+        setTimeout(resolve, 100);
+      }),
+    );
     const endStub = sinon.stub(Client.prototype, 'end').returns(true);
 
     const pool = new Pool({
@@ -138,9 +144,7 @@ describe('#connect()', () => {
         idleTimeoutMillis: 0,
       });
       const returnResult = {
-        rows: [
-          42,
-        ],
+        rows: [42],
         rowCount: 1,
       };
       const connectStub = sinon.stub(Client.prototype, 'connect').returns(true);
@@ -166,9 +170,7 @@ describe('#connect()', () => {
         idleTimeoutMillis: 0,
       });
       const returnResult = {
-        rows: [
-          42,
-        ],
+        rows: [42],
         rowCount: 1,
       };
       const connectStub = sinon.stub(Client.prototype, 'connect');
@@ -196,9 +198,7 @@ describe('#connect()', () => {
         idleTimeoutMillis: 0,
       });
       const returnResult = {
-        rows: [
-          42,
-        ],
+        rows: [42],
         rowCount: 1,
       };
       const connectStub = sinon.stub(Client.prototype, 'connect');
@@ -292,12 +292,7 @@ describe('#query()', () => {
     const releaseStub = sinon.stub(connection, 'release').returns(true);
 
     try {
-      await Promise.all([
-        pool.query('query - 1'),
-        pool.query('query - 2'),
-        pool.query('query - 3'),
-        pool.query('query - 4'),
-      ]);
+      await Promise.all([pool.query('query - 1'), pool.query('query - 2'), pool.query('query - 3'), pool.query('query - 4')]);
     } catch (ex) {
       // ignore
     }
@@ -315,10 +310,8 @@ describe('#query()', () => {
         reconnectOnReadOnlyTransactionError: false,
       });
       const connection = {
-        query() {
-        },
-        release() {
-        },
+        query() {},
+        release() {},
       };
       const connectStub = sinon.stub(pool, 'connect').returns(connection);
       const queryStub = sinon.stub(connection, 'query').throws(new Error('cannot execute UPDATE in a read-only transaction'));
@@ -344,10 +337,8 @@ describe('#query()', () => {
         reconnectOnReadOnlyTransactionError: true,
       });
       const connection = {
-        query() {
-        },
-        release() {
-        },
+        query() {},
+        release() {},
       };
       const connectStub = sinon.stub(pool, 'connect').returns(connection);
       const queryStub = sinon.stub(connection, 'query').throws(new Error('Some other error'));
@@ -373,16 +364,12 @@ describe('#query()', () => {
         reconnectOnReadOnlyTransactionError: true,
       });
       const returnResult = {
-        rows: [
-          42,
-        ],
+        rows: [42],
         rowCount: 1,
       };
       const connection = {
-        query() {
-        },
-        release() {
-        },
+        query() {},
+        release() {},
       };
       const connectStub = sinon.stub(pool, 'connect').returns(connection);
       const queryStub = sinon.stub(connection, 'query').returns(returnResult);
@@ -406,16 +393,12 @@ describe('#query()', () => {
         waitForReconnectReadOnlyTransactionMillis: 5,
       });
       const returnResult = {
-        rows: [
-          42,
-        ],
+        rows: [42],
         rowCount: 1,
       };
       const connection = {
-        query() {
-        },
-        release() {
-        },
+        query() {},
+        release() {},
       };
       const connectStub = sinon.stub(pool, 'connect').returns(connection);
       const queryStub = sinon.stub(connection, 'query');
@@ -441,16 +424,12 @@ describe('#query()', () => {
         waitForReconnectReadOnlyTransactionMillis: 0,
       });
       const returnResult = {
-        rows: [
-          42,
-        ],
+        rows: [42],
         rowCount: 1,
       };
       const connection = {
-        query() {
-        },
-        release() {
-        },
+        query() {},
+        release() {},
       };
       const connectStub = sinon.stub(pool, 'connect').returns(connection);
       const queryStub = sinon.stub(connection, 'query');
@@ -505,11 +484,7 @@ describe('#query()', () => {
       releaseStub.calledOnce.should.equal(true);
 
       queryStub.getCall(0).args[0].should.equal('select foo from foobar where id=$1 and (bar=$2 or bar=$3) and foo=$3');
-      queryStub.getCall(0).args[1].should.deep.equal([
-        'lorem',
-        'lorem - foobar',
-        'lorem - foo',
-      ]);
+      queryStub.getCall(0).args[1].should.deep.equal(['lorem', 'lorem - foobar', 'lorem - foo']);
     });
     it('should throw if a named parameter is specified in the query string but not present in the query object', async () => {
       const pool = new Pool({
@@ -554,9 +529,11 @@ describe('#query()', () => {
       const queryStub = sinon.stub(connection, 'query').returns(expectedResult);
       const releaseStub = sinon.stub(connection, 'release').returns(true);
 
-      await pool.query('select foo from foobar where foo=@foo', [{
-        foo: 'lorem - foo',
-      }]);
+      await pool.query('select foo from foobar where foo=@foo', [
+        {
+          foo: 'lorem - foo',
+        },
+      ]);
       connectStub.restore();
       queryStub.restore();
       releaseStub.restore();
@@ -566,9 +543,11 @@ describe('#query()', () => {
       releaseStub.calledOnce.should.equal(true);
 
       queryStub.getCall(0).args[0].should.equal('select foo from foobar where foo=@foo');
-      queryStub.getCall(0).args[1].should.deep.equal([{
-        foo: 'lorem - foo',
-      }]);
+      queryStub.getCall(0).args[1].should.deep.equal([
+        {
+          foo: 'lorem - foo',
+        },
+      ]);
     });
     it('should ignore a query with named parameters if the query object is undefined', async () => {
       const pool = new Pool({
