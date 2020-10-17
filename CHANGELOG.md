@@ -1,3 +1,9 @@
+### 3.2.2
+
+  * Update npms
+  * Add EAI_AGAIN as error code to trigger retry
+  * For `ssl: 'aws-rds'`, set `ca` to buffer instead of converting to string
+
 ### 3.2.1
 
   * Format code with prettier
