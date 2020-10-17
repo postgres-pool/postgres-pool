@@ -127,7 +127,7 @@ const pool = new Pool({
 const { Pool } = require('postgres-pool');
 
 const pool = new Pool({
-  connectionString: 'postgres://username:pwd@127.0.0.1/db_name?sslmode=verify-full',
+  connectionString: 'postgres://username:pwd@127.0.0.1/db_name',
   ssl: 'aws-rds'
 });
 ```
@@ -172,7 +172,7 @@ const pool = new Pool({
   connectionString: 'postgres://username:pwd@127.0.0.1/db_name',
   retryConnectionMaxRetries: 5, // Number of retries to attempt when there's an error matching `retryConnectionErrorCodes`. A value of 0 will disable connection retry.
   retryConnectionWaitMillis: 100, // Milliseconds to wait between retry connection attempts after receiving a connection error with code that matches `retryConnectionErrorCodes`. A value of 0 will try reconnecting immediately.
-  retryConnectionErrorCodes: ['ENOTFOUND'], // Error codes to trigger a connection retry.
+  retryConnectionErrorCodes: ['ENOTFOUND', 'EAI_AGAIN'], // Error codes to trigger a connection retry.
 });
 ```
 

@@ -51,7 +51,7 @@ export interface PoolOptionsBase {
    */
   retryConnectionWaitMillis: number;
   /**
-   * Error codes to trigger a connection retry. Eg. ENOTFOUND
+   * Error codes to trigger a connection retry. Eg. ENOTFOUND, EAI_AGAIN
    */
   retryConnectionErrorCodes: string[];
   /**
@@ -259,7 +259,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
       connectionTimeoutMillis: 30000,
       retryConnectionMaxRetries: 5,
       retryConnectionWaitMillis: 100,
-      retryConnectionErrorCodes: ['ENOTFOUND'],
+      retryConnectionErrorCodes: ['ENOTFOUND', 'EAI_AGAIN'],
       reconnectOnDatabaseIsStartingError: true,
       waitForDatabaseStartupMillis: 0,
       databaseStartupTimeoutMillis: 90000,
