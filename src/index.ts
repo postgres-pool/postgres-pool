@@ -485,7 +485,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
     }
 
     if (timeoutError && this.options.waitForReconnectReadOnlyTransactionMillis > 0) {
-      await new Promise((resolve) => {
+      await new Promise<void>((resolve) => {
         setTimeout(() => {
           resolve();
         }, this.options.waitForReconnectReadOnlyTransactionMillis);
@@ -493,7 +493,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
     }
 
     if (connectionError && this.options.waitForReconnectConnectionMillis > 0) {
-      await new Promise((resolve) => {
+      await new Promise<void>((resolve) => {
         setTimeout(() => {
           resolve();
         }, this.options.waitForReconnectConnectionMillis);
@@ -607,7 +607,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
         this.emit('retryConnectionOnError');
 
         if (this.options.retryConnectionWaitMillis > 0) {
-          await new Promise((resolve) => {
+          await new Promise<void>((resolve) => {
             setTimeout((): void => {
               resolve();
             }, this.options.retryConnectionWaitMillis);
@@ -627,7 +627,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
         }
 
         if (this.options.waitForDatabaseStartupMillis > 0) {
-          await new Promise((resolve) => {
+          await new Promise<void>((resolve) => {
             setTimeout((): void => {
               resolve();
             }, this.options.waitForDatabaseStartupMillis);
