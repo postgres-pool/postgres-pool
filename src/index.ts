@@ -20,7 +20,7 @@ export interface SslSettingsOrAwsRdsSsl {
    * TLS options for the underlying socket connection.
    * NOTE: `aws-rds` sets up strict tls connection details for connecting to AWS RDS instances
    */
-  ssl?: 'aws-rds' | ConnectionOptions;
+  ssl?: ConnectionOptions | 'aws-rds';
 }
 
 export interface PoolOptionsBase {
