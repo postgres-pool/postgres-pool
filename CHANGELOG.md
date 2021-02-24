@@ -1,3 +1,6 @@
+### 3.2.7
+  * Update npms
+
 ### 3.2.6
   * Update npms
 
