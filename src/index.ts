@@ -436,7 +436,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
   public end(): void {
     this.isEnding = true;
 
-    for (const idleConnection of this.idleConnections) {
+    for (const idleConnection of Array.from(this.idleConnections)) {
       this._removeConnection(idleConnection);
     }
   }
