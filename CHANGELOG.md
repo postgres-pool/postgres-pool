@@ -1,3 +1,7 @@
+### 3.2.8
+  * Fix `end()` not correctly closing multiple idle connections. Thanks@Kristof-Mattei!
+  * Update npms
+
 ### 3.2.7
   * Update npms
 
