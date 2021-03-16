@@ -554,6 +554,10 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
       }
     };
 
+    // we assign an async promise to a void
+    // because we don't want to enforce a promise signature
+    // on errorHandler
+    // also, EventEmitter.on("error") doesn't support () => Promise<void> (see the on("error"))
     client.errorHandler = async (err: Error): Promise<void> => {
       await this._removeConnection(client);
       this.emit('error', err, client);
