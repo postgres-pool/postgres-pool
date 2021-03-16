@@ -187,7 +187,7 @@ export interface PoolOptionsImplicit {
 export type PoolClient = Client & {
   uniqueId: string;
   idleTimeoutTimer?: NodeJS.Timer;
-  release: (removeConnection?: boolean) => void;
+  release: (removeConnection?: boolean) => Promise<void>;
   errorHandler: (err: Error) => void;
 };
 
@@ -397,6 +397,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
       return this._query(text, values);
     }
 
+    // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
     const tokenMatches = text.match(this.options.namedParameterFindRegExp);
     if (!tokenMatches) {
       throw new Error('Did not find named parameters in in the query. Expected named parameter form is @foo');
@@ -433,12 +434,14 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
   /**
    * Drains the pool of all active client connections. Used to shut down the pool down cleanly
    */
-  public end(): void {
+  public end(): Promise<void> {
     this.isEnding = true;
 
-    for (const idleConnection of Array.from(this.idleConnections)) {
-      this._removeConnection(idleConnection);
-    }
+    return this._drainAllIdle();
+  }
+
+  private async _drainAllIdle(): Promise<void> {
+    await Promise.all([...this.idleConnections].map((idleConnection: PoolClient) => this._removeConnection(idleConnection)));
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -462,7 +465,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
         throw ex;
       }
     } finally {
-      connection.release(removeConnection);
+      await connection.release(removeConnection);
     }
 
     // If we get here, that means that the query was attempted with a read-only connection.
@@ -475,9 +478,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
     }
 
     // Clear all idle connections and try the query again with a fresh connection
-    for (const idleConnection of this.idleConnections) {
-      this._removeConnection(idleConnection);
-    }
+    await this._drainAllIdle();
 
     if (!reconnectQueryStartTime) {
       // eslint-disable-next-line no-param-reassign
@@ -529,9 +530,9 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
      *
      * @param {boolean} [removeConnection=false]
      */
-    client.release = (removeConnection = false): void => {
+    client.release = async (removeConnection = false): Promise<void> => {
       if (this.isEnding || removeConnection) {
-        this._removeConnection(client);
+        await this._removeConnection(client);
         return;
       }
 
@@ -541,20 +542,22 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
       if (id) {
         this.connectionQueueEventEmitter.emit(`connection_${id}`, client);
       } else if (this.options.idleTimeoutMillis > 0) {
-        client.idleTimeoutTimer = setTimeout(() => {
-          this._removeConnection(client);
+        client.idleTimeoutTimer = setTimeout((): void => {
+          // eslint-disable-next-line no-void
+          void this._removeConnection(client);
         }, this.options.idleTimeoutMillis);
 
         this.idleConnections.push(client);
         this.emit('connectionIdle');
       } else {
-        this._removeConnection(client);
+        await this._removeConnection(client);
       }
     };
 
     client.errorHandler = (err: Error): void => {
-      this._removeConnection(client);
-      this.emit('error', err, client);
+      // fire and forget, we will always emit the error.
+      // eslint-disable-next-line no-void
+      void this._removeConnection(client).finally(() => this.emit('error', err, client));
     };
 
     client.on('error', client.errorHandler);
@@ -655,7 +658,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
    * Removes the client connection from the pool and tries to gracefully shut it down
    * @param {PoolClient} client
    */
-  private _removeConnection(client: PoolClient): void {
+  private async _removeConnection(client: PoolClient): Promise<void> {
     client.removeListener('error', client.errorHandler);
     // Ignore any errors when ending the connection
     client.on('error', (): void => {
@@ -677,12 +680,14 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
       this.connections.splice(connectionIndex, 1);
     }
 
-    client.end().catch((ex) => {
+    try {
+      await client.end();
+    } catch (ex) {
       const { message } = ex as Error;
       if (!/This socket has been ended by the other party/giu.test(message)) {
         this.emit('error', ex);
       }
-    });
+    }
 
     this.emit('connectionRemovedFromPool');
   }
