@@ -554,13 +554,10 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
       }
     };
 
-    // we assign an async promise to a void
-    // because we don't want to enforce a promise signature
-    // on errorHandler
-    // also, EventEmitter.on("error") doesn't support () => Promise<void> (see the on("error"))
-    client.errorHandler = async (err: Error): Promise<void> => {
-      await this._removeConnection(client);
-      this.emit('error', err, client);
+    client.errorHandler = (err: Error): void => {
+      // fire and forget, we will always emit the error.
+      // eslint-disable-next-line promise/catch-or-return
+      this._removeConnection(client).finally(() => this.emit('error', err, client));
     };
 
     client.on('error', client.errorHandler);
@@ -683,12 +680,14 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
       this.connections.splice(connectionIndex, 1);
     }
 
-    await client.end().catch((ex) => {
+    try {
+      await client.end();
+    } catch (ex) {
       const { message } = ex as Error;
       if (!/This socket has been ended by the other party/giu.test(message)) {
         this.emit('error', ex);
       }
-    });
+    }
 
     this.emit('connectionRemovedFromPool');
   }
