@@ -91,7 +91,7 @@ const pool = new Pool({
   connectionString: 'postgres://username:pwd@127.0.0.1/db_name',
 });
 
-await pool.end();
+pool.end();
 ```
 
 ### Explicit connection details instead of a connection string
