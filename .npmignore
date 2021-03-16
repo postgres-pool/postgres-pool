@@ -35,4 +35,3 @@ tsconfig.lint.json
 nbproject
 .idea
 .vscode
-package-lock.json
