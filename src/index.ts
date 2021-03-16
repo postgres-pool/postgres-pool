@@ -187,7 +187,7 @@ export interface PoolOptionsImplicit {
 export type PoolClient = Client & {
   uniqueId: string;
   idleTimeoutTimer?: NodeJS.Timer;
-  release: (removeConnection?: boolean) => void;
+  release: (removeConnection?: boolean) => Promise<void>;
   errorHandler: (err: Error) => void;
 };
 
@@ -465,7 +465,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
         throw ex;
       }
     } finally {
-      connection.release(removeConnection);
+      await connection.release(removeConnection);
     }
 
     // If we get here, that means that the query was attempted with a read-only connection.
