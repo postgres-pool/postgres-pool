@@ -556,8 +556,8 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
 
     client.errorHandler = (err: Error): void => {
       // fire and forget, we will always emit the error.
-      // eslint-disable-next-line promise/catch-or-return
-      this._removeConnection(client).finally(() => this.emit('error', err, client));
+      // eslint-disable-next-line no-void
+      void this._removeConnection(client).finally(() => this.emit('error', err, client));
     };
 
     client.on('error', client.errorHandler);
