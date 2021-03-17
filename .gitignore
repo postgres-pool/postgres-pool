@@ -65,5 +65,4 @@ typings/
 nbproject
 .idea
 .vscode
-/package-lock.json
 dist
