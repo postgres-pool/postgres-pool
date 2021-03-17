@@ -1,5 +1,9 @@
+### 4.0.0
+  * Make `end()` return a promise. #57 Thanks @Kristof-Mattei!
+  * Add package-lock.json. #58 Thanks @Kristof-Mattei!
+
 ### 3.2.8
-  * Fix `end()` not correctly closing multiple idle connections. Thanks@Kristof-Mattei!
+  * Fix `end()` not correctly closing multiple idle connections. Thanks @Kristof-Mattei!
   * Update npms
 
 ### 3.2.7
