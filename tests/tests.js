@@ -576,3 +576,281 @@ describe('#query()', () => {
     });
   });
 });
+
+describe('Integration tests', () => {
+  const connectionString = 'postgres://postgres:postgres@127.0.0.1:5432/postgres';
+  it('should leave connection idle after calling connect() & release() and close all connections after calling end()', async () => {
+    const pool1 = new Pool({
+      connectionString,
+    });
+    const pool2 = new Pool({
+      connectionString,
+    });
+    const validatorPool = new Pool({
+      connectionString,
+    });
+
+    const warmConnections = await Promise.all([pool1.connect(), pool2.connect()]);
+
+    for (const connection of warmConnections) {
+      // eslint-disable-next-line no-await-in-loop
+      await connection.release();
+    }
+
+    pool1.idleCount.should.equal(1);
+    pool1.totalCount.should.equal(1);
+    pool1.waitingCount.should.equal(0);
+
+    pool2.idleCount.should.equal(1);
+    pool2.totalCount.should.equal(1);
+    pool2.waitingCount.should.equal(0);
+
+    const processIds = warmConnections.map((connection) => connection.processID).sort();
+
+    const { rows: idleRows } = await validatorPool.query('select pid, state from "pg_stat_activity" where pid=ANY($1) order by pid', [processIds]);
+    idleRows.should.deep.equal(
+      processIds.map((processId) => {
+        return {
+          pid: processId,
+          state: 'idle',
+        };
+      }),
+    );
+
+    await pool1.end();
+    await pool2.end();
+
+    pool1.idleCount.should.equal(0);
+    pool1.totalCount.should.equal(0);
+    pool1.waitingCount.should.equal(0);
+
+    pool2.idleCount.should.equal(0);
+    pool2.totalCount.should.equal(0);
+    pool2.waitingCount.should.equal(0);
+
+    const { rows: rowsAfterEnd } = await validatorPool.query('select pid, state from "pg_stat_activity" where pid=ANY($1) ', [processIds]);
+    rowsAfterEnd.should.deep.equal([]);
+    await validatorPool.end();
+  });
+  it('should properly close connections in Promise.all()', async () => {
+    const pool1 = new Pool({
+      connectionString,
+    });
+    const pool2 = new Pool({
+      connectionString,
+    });
+    const validatorPool = new Pool({
+      connectionString,
+    });
+
+    const warmConnections = await Promise.all([pool1.connect(), pool2.connect()]);
+
+    await Promise.all(warmConnections.map((connection) => connection.release()));
+
+    const processIds = warmConnections.map((connection) => connection.processID).sort();
+
+    const { rows: idleRows } = await validatorPool.query('select pid, state from "pg_stat_activity" where pid=ANY($1) order by pid', [processIds]);
+    idleRows.should.deep.equal(
+      processIds.map((processId) => {
+        return {
+          pid: processId,
+          state: 'idle',
+        };
+      }),
+    );
+
+    pool1.idleCount.should.equal(1);
+    pool1.totalCount.should.equal(1);
+    pool1.waitingCount.should.equal(0);
+
+    pool2.idleCount.should.equal(1);
+    pool2.totalCount.should.equal(1);
+    pool2.waitingCount.should.equal(0);
+
+    await Promise.all([pool1.end(), pool2.end()]);
+
+    pool1.idleCount.should.equal(0);
+    pool1.totalCount.should.equal(0);
+    pool1.waitingCount.should.equal(0);
+
+    pool2.idleCount.should.equal(0);
+    pool2.totalCount.should.equal(0);
+    pool2.waitingCount.should.equal(0);
+
+    const { rows: rowsAfterEnd } = await validatorPool.query('select pid, state from "pg_stat_activity" where pid=ANY($1) ', [processIds]);
+    rowsAfterEnd.should.deep.equal([]);
+    await validatorPool.end();
+  });
+  it('should properly close multiple connections from multiple pools with Promise.all()', async () => {
+    const pool1 = new Pool({
+      connectionString,
+    });
+    const pool2 = new Pool({
+      connectionString,
+    });
+    const validatorPool = new Pool({
+      connectionString,
+    });
+
+    const warmConnections = await Promise.all([pool1.connect(), pool1.connect(), pool2.connect(), pool2.connect()]);
+
+    await Promise.all(warmConnections.map((connection) => connection.release()));
+
+    const processIds = warmConnections.map((connection) => connection.processID).sort();
+
+    const { rows: idleRows } = await validatorPool.query('select pid, state from "pg_stat_activity" where pid=ANY($1) order by pid', [processIds]);
+    idleRows.should.deep.equal(
+      processIds.map((processId) => {
+        return {
+          pid: processId,
+          state: 'idle',
+        };
+      }),
+    );
+
+    pool1.idleCount.should.equal(2);
+    pool1.totalCount.should.equal(2);
+    pool1.waitingCount.should.equal(0);
+
+    pool2.idleCount.should.equal(2);
+    pool2.totalCount.should.equal(2);
+    pool2.waitingCount.should.equal(0);
+
+    await Promise.all([pool1.end(), pool2.end()]);
+
+    pool1.idleCount.should.equal(0);
+    pool1.totalCount.should.equal(0);
+    pool1.waitingCount.should.equal(0);
+
+    pool2.idleCount.should.equal(0);
+    pool2.totalCount.should.equal(0);
+    pool2.waitingCount.should.equal(0);
+
+    const { rows: rowsAfterEnd } = await validatorPool.query('select pid, state from "pg_stat_activity" where pid=ANY($1) ', [processIds]);
+    rowsAfterEnd.should.deep.equal([]);
+    await validatorPool.end();
+  });
+  it('should properly close multiple connections from multiple pools with Promise.all() - 2', async () => {
+    const pool1 = new Pool({
+      connectionString,
+    });
+    const pool2 = new Pool({
+      connectionString,
+    });
+    const validatorPool = new Pool({
+      connectionString,
+    });
+
+    const warmConnections = await Promise.all([pool1.connect(), pool1.connect(), pool2.connect(), pool2.connect()]);
+
+    await Promise.all(warmConnections.map((connection) => connection.release()));
+
+    const processIds = warmConnections.map((connection) => connection.processID).sort();
+
+    const { rows: idleRows } = await validatorPool.query('select pid, state from "pg_stat_activity" where pid=ANY($1) order by pid', [processIds]);
+    idleRows.should.deep.equal(
+      processIds.map((processId) => {
+        return {
+          pid: processId,
+          state: 'idle',
+        };
+      }),
+    );
+
+    pool1.idleCount.should.equal(2);
+    pool1.totalCount.should.equal(2);
+    pool1.waitingCount.should.equal(0);
+
+    pool2.idleCount.should.equal(2);
+    pool2.totalCount.should.equal(2);
+    pool2.waitingCount.should.equal(0);
+
+    function closePool(pool) {
+      try {
+        return pool.end();
+      } catch (ex) {
+        // Simulating something more complex
+        // eslint-disable-next-line no-console
+        console.error(ex);
+
+        throw ex;
+      }
+    }
+
+    await Promise.all([closePool(pool1), closePool(pool2)]);
+
+    pool1.idleCount.should.equal(0);
+    pool1.totalCount.should.equal(0);
+    pool1.waitingCount.should.equal(0);
+
+    pool2.idleCount.should.equal(0);
+    pool2.totalCount.should.equal(0);
+    pool2.waitingCount.should.equal(0);
+
+    const { rows: rowsAfterEnd } = await validatorPool.query('select pid, state from "pg_stat_activity" where pid=ANY($1) ', [processIds]);
+    rowsAfterEnd.should.deep.equal([]);
+    await validatorPool.end();
+  });
+  it('should close all connections in a pool when running more queries than available connections', async () => {
+    const pool = new Pool({
+      connectionString,
+      poolSize: 2,
+    });
+    const validatorPool = new Pool({
+      connectionString,
+    });
+    const validatorConnection = await validatorPool.connect();
+    await validatorConnection.release();
+
+    const { rowCount } = await validatorPool.query(
+      `
+      select
+        pid,
+        state
+      from "pg_stat_activity"
+      where
+        usename=@username
+        AND pid != @validatorPid
+    `,
+      {
+        username: 'postgres',
+        validatorPid: validatorConnection.processID,
+      },
+    );
+    rowCount.should.equal(0);
+
+    // Run more queries than poolSize at the same time
+    await Promise.all([
+      pool.query('select * from pg_stat_activity order by pid'),
+      pool.query('select * from pg_stat_activity order by state_change'),
+      pool.query('select * from pg_stat_activity order by backend_start'),
+      pool.query('select * from pg_stat_activity order by pid,state_change'),
+      pool.query('select * from pg_stat_activity order by backend_start,pid'),
+      pool.query('select * from pg_stat_activity'),
+    ]);
+
+    pool.idleCount.should.equal(2);
+    pool.totalCount.should.equal(2);
+    pool.waitingCount.should.equal(0);
+
+    await pool.end();
+
+    const { rows: rowsAfterEnd } = await validatorPool.query(
+      `
+      select
+        pid,
+        state
+      from "pg_stat_activity"
+      where
+        usename=@username
+        AND pid != @validatorPid
+    `,
+      {
+        username: 'postgres',
+        validatorPid: validatorConnection.processID,
+      },
+    );
+    rowsAfterEnd.should.deep.equal([]);
+    await validatorPool.end();
+  });
+});
