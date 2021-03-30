@@ -802,11 +802,13 @@ describe('Integration tests', () => {
     const validatorConnection = await validatorPool.connect();
     await validatorConnection.release();
 
-    const { rowCount } = await validatorPool.query(
+    const { rows: rowsBefore } = await validatorPool.query(
       `
       select
         pid,
-        state
+        state,
+        query_start,
+        query
       from "pg_stat_activity"
       where
         usename=@username
@@ -817,7 +819,7 @@ describe('Integration tests', () => {
         validatorPid: validatorConnection.processID,
       },
     );
-    rowCount.should.equal(0);
+    rowsBefore.should.deep.equal([]);
 
     // Run more queries than poolSize at the same time
     await Promise.all([
@@ -839,7 +841,9 @@ describe('Integration tests', () => {
       `
       select
         pid,
-        state
+        state,
+        query_start,
+        query
       from "pg_stat_activity"
       where
         usename=@username
