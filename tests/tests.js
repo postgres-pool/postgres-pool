@@ -605,7 +605,7 @@ describe('Integration tests', () => {
     pool2.totalCount.should.equal(1);
     pool2.waitingCount.should.equal(0);
 
-    const processIds = warmConnections.map((connection) => connection.processID).sort();
+    const processIds = warmConnections.map((connection) => connection.processID).sort((first, second) => first - second);
 
     const { rows: idleRows } = await validatorPool.query('select pid, state from "pg_stat_activity" where pid=ANY($1) order by pid', [processIds]);
     idleRows.should.deep.equal(
@@ -647,7 +647,7 @@ describe('Integration tests', () => {
 
     await Promise.all(warmConnections.map((connection) => connection.release()));
 
-    const processIds = warmConnections.map((connection) => connection.processID).sort();
+    const processIds = warmConnections.map((connection) => connection.processID).sort((first, second) => first - second);
 
     const { rows: idleRows } = await validatorPool.query('select pid, state from "pg_stat_activity" where pid=ANY($1) order by pid', [processIds]);
     idleRows.should.deep.equal(
@@ -696,7 +696,7 @@ describe('Integration tests', () => {
 
     await Promise.all(warmConnections.map((connection) => connection.release()));
 
-    const processIds = warmConnections.map((connection) => connection.processID).sort();
+    const processIds = warmConnections.map((connection) => connection.processID).sort((first, second) => first - second);
 
     const { rows: idleRows } = await validatorPool.query('select pid, state from "pg_stat_activity" where pid=ANY($1) order by pid', [processIds]);
     idleRows.should.deep.equal(
@@ -745,7 +745,7 @@ describe('Integration tests', () => {
 
     await Promise.all(warmConnections.map((connection) => connection.release()));
 
-    const processIds = warmConnections.map((connection) => connection.processID).sort();
+    const processIds = warmConnections.map((connection) => connection.processID).sort((first, second) => first - second);
 
     const { rows: idleRows } = await validatorPool.query('select pid, state from "pg_stat_activity" where pid=ANY($1) order by pid', [processIds]);
     idleRows.should.deep.equal(
