@@ -792,27 +792,25 @@ describe('Integration tests', () => {
     await validatorPool.end();
   });
   it('should close all connections in a pool when running more queries than available connections', async () => {
-    const pool = new Pool({
-      connectionString,
-      poolSize: 2,
-    });
     const validatorPool = new Pool({
       connectionString,
     });
     const validatorConnection = await validatorPool.connect();
     await validatorConnection.release();
 
+    const pool = new Pool({
+      connectionString,
+      poolSize: 2,
+    });
+
     const { rows: rowsBefore } = await validatorPool.query(
       `
       select
-        pid,
-        state,
-        query_start,
-        query
+        *
       from "pg_stat_activity"
       where
         usename=@username
-        AND pid != @validatorPid
+        AND pid > @validatorPid
     `,
       {
         username: 'postgres',
@@ -840,14 +838,11 @@ describe('Integration tests', () => {
     const { rows: rowsAfterEnd } = await validatorPool.query(
       `
       select
-        pid,
-        state,
-        query_start,
-        query
+        *
       from "pg_stat_activity"
       where
         usename=@username
-        AND pid != @validatorPid
+        AND pid > @validatorPid
     `,
       {
         username: 'postgres',
