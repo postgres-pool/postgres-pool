@@ -227,6 +227,21 @@ const pool = new Pool({
 });
 ```
 
+### Debugging
+```ts
+const { Pool } = require('postgres-pool');
+
+const pool = new Pool({
+  connectionString: 'postgres://username:pwd@127.0.0.1/db_name',
+});
+// returns the time span of how long it took between requesting
+// and receiving a connection. Uses process.hrTime() internally
+pool.debugEmitter.on('receiveConnectionDelay', (startTime: HrTime, endTime: HrTime) => {
+  console.log('start time: ', startTime);
+  console.log('end time: ', endTime);
+});
+```
+
 ## Compatibility
 - Node.js v10 or above
 

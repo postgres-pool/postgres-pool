@@ -215,7 +215,12 @@ interface PoolEvents {
   error: (error: Error, client?: PoolClient) => void;
 }
 
+interface DebugEvents {
+  receiveConnectionDelay: (startTime: [number, number], endTime: [number, number]) => void;
+}
+
 type PoolEmitter = StrictEventEmitter<EventEmitter, PoolEvents>;
+type DebugEmitter = StrictEventEmitter<EventEmitter, DebugEvents>;
 
 export class Pool extends (EventEmitter as new () => PoolEmitter) {
   /**
@@ -238,6 +243,8 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
   public get totalCount(): number {
     return this.connections.length;
   }
+
+  public debugEmitter: DebugEmitter;
 
   protected options: PoolOptionsBase & SslSettings & (PoolOptionsExplicit | PoolOptionsImplicit);
 
@@ -302,6 +309,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
     }
 
     this.connectionQueueEventEmitter = new EventEmitter();
+    this.debugEmitter = new EventEmitter();
   }
 
   /**
@@ -452,7 +460,9 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async _query<TRow extends QueryResultRow = any>(text: string, values?: any[], reconnectQueryStartTime?: [number, number]): Promise<QueryResult<TRow>> {
+    const connectionStart = process.hrtime();
     const connection = await this.connect();
+    this.debugEmitter.emit('receiveConnectionDelay', connectionStart, process.hrtime());
     let removeConnection = false;
     let timeoutError: Error | undefined;
     let connectionError: Error | undefined;
