@@ -138,6 +138,7 @@ export interface PoolOptionsExplicit {
   password?: string;
   port?: number;
   poolSize?: number;
+  minPoolSize?: number;
   idleTimeoutMillis?: number;
   waitForAvailableConnectionTimeoutMillis?: number;
   connectionTimeoutMillis?: number;
@@ -165,6 +166,7 @@ export interface PoolOptionsExplicit {
 export interface PoolOptionsImplicit {
   connectionString: string;
   poolSize?: number;
+  minPoolSize?: number;
   idleTimeoutMillis?: number;
   waitForAvailableConnectionTimeoutMillis?: number;
   connectionTimeoutMillis?: number;
@@ -269,7 +271,8 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
       minPoolSize: 0,
       idleTimeoutMillis: 10000,
       waitForAvailableConnectionTimeoutMillis: 90000,
-      connectionTimeoutMillis: 30000,
+      connectionTimeoutMillis: options.minPoolSize && options.minPoolSize > 0 ? 0 : 30000,
+      query_timeout: 30000,
       retryConnectionMaxRetries: 5,
       retryConnectionWaitMillis: 100,
       retryConnectionErrorCodes: ['ENOTFOUND', 'EAI_AGAIN'],
