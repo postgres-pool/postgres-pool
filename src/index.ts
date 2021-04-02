@@ -29,6 +29,11 @@ export interface PoolOptionsBase {
    */
   poolSize: number;
   /**
+   * The minimum number of connections to store in the pool
+   * These connections will be lazily opened.
+   */
+  minPoolSize: number;
+  /**
    * Milliseconds until an idle connection is closed and removed from the active connection pool
    */
   idleTimeoutMillis: number;
@@ -254,6 +259,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
 
     const defaultOptions: PoolOptionsBase = {
       poolSize: 10,
+      minPoolSize: 0,
       idleTimeoutMillis: 10000,
       waitForAvailableConnectionTimeoutMillis: 90000,
       connectionTimeoutMillis: 30000,
@@ -543,8 +549,13 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
         this.connectionQueueEventEmitter.emit(`connection_${id}`, client);
       } else if (this.options.idleTimeoutMillis > 0) {
         client.idleTimeoutTimer = setTimeout((): void => {
-          // eslint-disable-next-line no-void
-          void this._removeConnection(client);
+          if (this.connections.length < this.options.minPoolSize) {
+            // eslint-disable-next-line no-void
+            void client.release();
+          } else {
+            // eslint-disable-next-line no-void
+            void this._removeConnection(client);
+          }
         }, this.options.idleTimeoutMillis);
 
         this.idleConnections.push(client);
