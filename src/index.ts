@@ -559,7 +559,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
         this.connectionQueueEventEmitter.emit(`connection_${id}`, client);
       } else if (this.options.idleTimeoutMillis > 0) {
         client.idleTimeoutTimer = setTimeout((): void => {
-          if (this.connections.length < this.options.minPoolSize) {
+          if (!this.isEnding && this.connections.length < this.options.minPoolSize) {
             // eslint-disable-next-line no-void
             void client.release();
           } else {
@@ -598,7 +598,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
         new Promise((_, reject) => {
           connectionTimeoutTimer = setTimeout((): void => {
             reject(new Error('Timed out trying to connect to postgres'));
-          }, this.options.connectionTimeoutMillis);
+          }, this.options.waitForAvailableConnectionTimeoutMillis);
         }),
       ]);
 
