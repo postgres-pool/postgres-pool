@@ -29,7 +29,7 @@ export interface PoolOptionsBase {
    */
   poolSize: number;
   /**
-   * The minimum number of connections to store in the pool
+   * The minimum number of connections to store in the pool.
    * These connections will be lazily opened.
    */
   minPoolSize: number;
