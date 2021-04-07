@@ -1,3 +1,5 @@
+const assert = require('assert');
+
 const chai = require('chai');
 const faker = require('faker');
 const { Client } = require('pg');
@@ -99,6 +101,57 @@ describe('#connect()', () => {
     pool.waitingCount.should.equal(0);
     pool.idleCount.should.equal(0);
     pool.totalCount.should.equal(0);
+  });
+  it('should emit "connectionAddedToPool" after successful connection', async () => {
+    const startTime = process.hrtime.bigint();
+    let connectionStartTime;
+    const connectStub = sinon.stub(Client.prototype, 'connect').returns(
+      new Promise((resolve) => {
+        setTimeout(resolve, 1);
+      }),
+    );
+    const endStub = sinon.stub(Client.prototype, 'end').returns(true);
+
+    const pool = new Pool({
+      connectionString: 'postgres://foo:bar@baz:1234/xur',
+    });
+    pool.on('connectionAddedToPool', (params) => {
+      connectionStartTime = params.startTime;
+    });
+
+    await pool.connect();
+
+    connectStub.restore();
+    endStub.restore();
+
+    assert(connectionStartTime);
+    (connectionStartTime > startTime).should.equal(true);
+  });
+  it('should not emit "connectionAddedToPool" if connection fails', async () => {
+    const connectionAddedToPoolCalled = false;
+    const connectStub = sinon.stub(Client.prototype, 'connect').returns(
+      new Promise((resolve) => {
+        setTimeout(resolve, 100);
+      }),
+    );
+    const endStub = sinon.stub(Client.prototype, 'end').returns(true);
+
+    const pool = new Pool({
+      connectionString: 'postgres://foo:bar@baz:1234/xur',
+      connectionTimeoutMillis: 1,
+    });
+
+    try {
+      await pool.connect();
+      false.should.equal(true);
+    } catch (ex) {
+      assert(ex);
+    } finally {
+      connectStub.restore();
+      endStub.restore();
+    }
+
+    connectionAddedToPoolCalled.should.equal(false);
   });
   describe('retryQueryWhenDatabaseIsStarting', () => {
     it('should not try to reconnect if reconnectOnDatabaseIsStartingError=false and "the database system is starting up" is thrown', async () => {

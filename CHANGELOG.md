@@ -1,3 +1,7 @@
+### 5.0.0
+  * Drop support for Node.js 10
+  * Add parameters to `connectionAddedToPool` event
+
 ### 4.0.0
   * Make `end()` return a promise. #57 Thanks @Kristof-Mattei!
   * Add package-lock.json. #58 Thanks @Kristof-Mattei!

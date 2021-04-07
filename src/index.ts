@@ -202,10 +202,16 @@ export type PoolClientWithConnection = PoolClient & {
   connection?: Connection;
 };
 
+export interface ConnectionAddedToPoolParams {
+  connectionId: PoolClient['uniqueId'];
+  retryAttempt: number;
+  startTime: bigint;
+}
+
 interface PoolEvents {
   connectionRequestQueued: () => void;
   connectionRequestDequeued: () => void;
-  connectionAddedToPool: () => void;
+  connectionAddedToPool: (params: ConnectionAddedToPoolParams) => void;
   connectionRemovedFromPool: () => void;
   connectionIdle: () => void;
   connectionRemovedFromIdlePool: () => void;
@@ -542,9 +548,15 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
    * Creates a new client connection to add to the pool
    * @param {string} connectionId
    * @param {number} [retryAttempt=0]
+   * @param {bigint} [createConnectionStartTime] - High-resolution time (in nanoseconds) for when the connection was created
    * @param {[number,number]} [databaseStartupStartTime] - hrtime when the db was first listed as starting up
    */
-  private async _createConnection(connectionId: string, retryAttempt = 0, databaseStartupStartTime?: [number, number]): Promise<PoolClient> {
+  private async _createConnection(
+    connectionId: string,
+    retryAttempt = 0,
+    createConnectionStartTime: bigint = process.hrtime.bigint(),
+    databaseStartupStartTime?: [number, number],
+  ): Promise<PoolClient> {
     const client = new Client({
       ...this.options,
       connectionTimeoutMillis: this.options.minPoolSize && this.options.minPoolSize > 0 ? 0 : this.options.connectionTimeoutMillis,
@@ -625,7 +637,11 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
         }),
       ]);
 
-      this.emit('connectionAddedToPool');
+      this.emit('connectionAddedToPool', {
+        connectionId,
+        retryAttempt,
+        startTime: createConnectionStartTime,
+      });
     } catch (ex) {
       const { connection } = client as PoolClientWithConnection;
       if (connection) {
@@ -661,7 +677,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
           });
         }
 
-        const connectionAfterRetry = await this._createConnection(connectionId, retryAttempt + 1, databaseStartupStartTime);
+        const connectionAfterRetry = await this._createConnection(connectionId, retryAttempt + 1, createConnectionStartTime, databaseStartupStartTime);
         return connectionAfterRetry;
       }
 
@@ -688,7 +704,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
           throw ex;
         }
 
-        const connectionAfterRetry = await this._createConnection(connectionId, 0, databaseStartupStartTime);
+        const connectionAfterRetry = await this._createConnection(connectionId, 0, createConnectionStartTime, databaseStartupStartTime);
         return connectionAfterRetry;
       }
 

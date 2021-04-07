@@ -243,7 +243,7 @@ pool.debugEmitter.on('receiveConnectionDelay', (startTime: HrTime, endTime: HrTi
 ```
 
 ## Compatibility
-- Node.js v10 or above
+- Node.js v12 or above
 
 ## License
 MIT
