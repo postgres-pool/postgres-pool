@@ -480,6 +480,9 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
       } else if (this.options.reconnectOnConnectionError && /Client has encountered a connection error and is not queryable/giu.test(message)) {
         connectionError = ex as Error;
         removeConnection = true;
+      } else if (this.options.reconnectOnConnectionError && /Connection terminated unexpectedly/giu) {
+        connectionError = ex as Error;
+        removeConnection = true;
       } else {
         throw ex;
       }
@@ -542,7 +545,10 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
    * @param {[number,number]} [databaseStartupStartTime] - hrtime when the db was first listed as starting up
    */
   private async _createConnection(connectionId: string, retryAttempt = 0, databaseStartupStartTime?: [number, number]): Promise<PoolClient> {
-    const client = new Client(this.options) as PoolClient;
+    const client = new Client({
+      ...this.options,
+      connectionTimeoutMillis: this.options.minPoolSize && this.options.minPoolSize > 0 ? 0 : this.options.connectionTimeoutMillis,
+    }) as PoolClient;
     client.uniqueId = connectionId;
     /**
      * Releases the client connection back to the pool, to be used by another query.
@@ -561,15 +567,18 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
       if (id) {
         this.connectionQueueEventEmitter.emit(`connection_${id}`, client);
       } else if (this.options.idleTimeoutMillis > 0) {
-        client.idleTimeoutTimer = setTimeout((): void => {
-          if (!this.isEnding && this.connections.length < this.options.minPoolSize) {
+        const idleTimeoutFunction = (): void => {
+          if (this.connections.length <= this.options.minPoolSize) {
             // eslint-disable-next-line no-void
-            void client.release();
+
+            client.idleTimeoutTimer = setTimeout(idleTimeoutFunction, this.options.idleTimeoutMillis);
           } else {
             // eslint-disable-next-line no-void
             void this._removeConnection(client);
           }
-        }, this.options.idleTimeoutMillis);
+        };
+
+        client.idleTimeoutTimer = setTimeout(idleTimeoutFunction, this.options.idleTimeoutMillis);
 
         this.idleConnections.push(client);
         this.emit('connectionIdle');
@@ -583,6 +592,17 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
       // eslint-disable-next-line no-void
       void this._removeConnection(client).finally(() => this.emit('error', err, client));
     };
+
+    client.on('end', () => {
+      if (client.idleTimeoutTimer) {
+        clearTimeout(client.idleTimeoutTimer);
+      }
+      // this.idleConnections.splice(
+      //   this.idleConnections.findIndex((connection) => connection.uniqueId === client.uniqueId),
+      //   1,
+      // );
+      // void this._removeConnection(client);
+    });
 
     client.on('error', client.errorHandler);
     let connectionTimeoutTimer: NodeJS.Timeout | null = null;

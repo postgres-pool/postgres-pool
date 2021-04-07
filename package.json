@@ -2,7 +2,7 @@
   "name": "postgres-pool",
   "version": "4.0.0",
   "description": "Node postgres connection pool implementation for node-pg",
-  "main": "index.js",
+  "main": "./dist/index.js",
   "types": "index.d.ts",
   "scripts": {
     "build": "tsc",
