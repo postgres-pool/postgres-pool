@@ -1,3 +1,7 @@
+### 5.0.1
+  * Update npms
+  * Add Node.js v16 to CI tests
+
 ### 5.0.0
   * Drop support for Node.js 10
   * Add parameters to `connectionAddedToPool` event
