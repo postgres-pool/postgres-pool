@@ -5,7 +5,7 @@ const faker = require('faker');
 const { Client } = require('pg');
 const sinon = require('sinon');
 
-const { Pool } = require('../dist/index.js');
+const { Pool } = require('../dist/index');
 
 chai.should();
 chai.use(require('chai-as-promised'));
