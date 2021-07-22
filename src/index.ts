@@ -29,6 +29,11 @@ export interface PoolOptionsBase {
    */
   poolSize: number;
   /**
+   * The minimum number of connections to store in the pool.
+   * These connections will be lazily opened.
+   */
+  minPoolSize: number;
+  /**
    * Milliseconds until an idle connection is closed and removed from the active connection pool
    */
   idleTimeoutMillis: number;
@@ -133,6 +138,7 @@ export interface PoolOptionsExplicit {
   password?: string;
   port?: number;
   poolSize?: number;
+  minPoolSize?: number;
   idleTimeoutMillis?: number;
   waitForAvailableConnectionTimeoutMillis?: number;
   connectionTimeoutMillis?: number;
@@ -160,6 +166,7 @@ export interface PoolOptionsExplicit {
 export interface PoolOptionsImplicit {
   connectionString: string;
   poolSize?: number;
+  minPoolSize?: number;
   idleTimeoutMillis?: number;
   waitForAvailableConnectionTimeoutMillis?: number;
   connectionTimeoutMillis?: number;
@@ -216,7 +223,12 @@ interface PoolEvents {
   error: (error: Error, client?: PoolClient) => void;
 }
 
+interface DebugEvents {
+  receiveConnectionDelay: (startTime: [number, number], endTime: [number, number]) => void;
+}
+
 type PoolEmitter = StrictEventEmitter<EventEmitter, PoolEvents>;
+type DebugEmitter = StrictEventEmitter<EventEmitter, DebugEvents>;
 
 export class Pool extends (EventEmitter as new () => PoolEmitter) {
   /**
@@ -240,6 +252,8 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
     return this.connections.length;
   }
 
+  public debugEmitter: DebugEmitter;
+
   protected options: PoolOptionsBase & SslSettings & (PoolOptionsExplicit | PoolOptionsImplicit);
 
   // Internal event emitter used to handle queued connection requests
@@ -260,9 +274,11 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
 
     const defaultOptions: PoolOptionsBase = {
       poolSize: 10,
+      minPoolSize: 0,
       idleTimeoutMillis: 10000,
       waitForAvailableConnectionTimeoutMillis: 90000,
-      connectionTimeoutMillis: 30000,
+      connectionTimeoutMillis: options.minPoolSize && options.minPoolSize > 0 ? 0 : 30000,
+      query_timeout: 30000,
       retryConnectionMaxRetries: 5,
       retryConnectionWaitMillis: 100,
       retryConnectionErrorCodes: ['ENOTFOUND', 'EAI_AGAIN'],
@@ -302,6 +318,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
     }
 
     this.connectionQueueEventEmitter = new EventEmitter();
+    this.debugEmitter = new EventEmitter();
   }
 
   /**
@@ -452,7 +469,9 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async _query<TRow extends QueryResultRow = any>(text: string, values?: any[], reconnectQueryStartTime?: [number, number]): Promise<QueryResult<TRow>> {
+    const connectionStart = process.hrtime();
     const connection = await this.connect();
+    this.debugEmitter.emit('receiveConnectionDelay', connectionStart, process.hrtime());
     let removeConnection = false;
     let timeoutError: Error | undefined;
     let connectionError: Error | undefined;
@@ -465,6 +484,9 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
         timeoutError = ex as Error;
         removeConnection = true;
       } else if (this.options.reconnectOnConnectionError && /Client has encountered a connection error and is not queryable/giu.test(message)) {
+        connectionError = ex as Error;
+        removeConnection = true;
+      } else if (this.options.reconnectOnConnectionError && /Connection terminated unexpectedly/giu) {
         connectionError = ex as Error;
         removeConnection = true;
       } else {
@@ -535,7 +557,10 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
     createConnectionStartTime: bigint = process.hrtime.bigint(),
     databaseStartupStartTime?: [number, number],
   ): Promise<PoolClient> {
-    const client = new Client(this.options) as PoolClient;
+    const client = new Client({
+      ...this.options,
+      connectionTimeoutMillis: this.options.minPoolSize && this.options.minPoolSize > 0 ? 0 : this.options.connectionTimeoutMillis,
+    }) as PoolClient;
     client.uniqueId = connectionId;
     /**
      * Releases the client connection back to the pool, to be used by another query.
@@ -554,10 +579,18 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
       if (id) {
         this.connectionQueueEventEmitter.emit(`connection_${id}`, client);
       } else if (this.options.idleTimeoutMillis > 0) {
-        client.idleTimeoutTimer = setTimeout((): void => {
-          // eslint-disable-next-line no-void
-          void this._removeConnection(client);
-        }, this.options.idleTimeoutMillis);
+        const idleTimeoutFunction = (): void => {
+          if (this.connections.length <= this.options.minPoolSize) {
+            // eslint-disable-next-line no-void
+
+            client.idleTimeoutTimer = setTimeout(idleTimeoutFunction, this.options.idleTimeoutMillis);
+          } else {
+            // eslint-disable-next-line no-void
+            void this._removeConnection(client);
+          }
+        };
+
+        client.idleTimeoutTimer = setTimeout(idleTimeoutFunction, this.options.idleTimeoutMillis);
 
         this.idleConnections.push(client);
         this.emit('connectionIdle');
@@ -571,6 +604,17 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
       // eslint-disable-next-line no-void
       void this._removeConnection(client).finally(() => this.emit('error', err, client));
     };
+
+    client.on('end', () => {
+      if (client.idleTimeoutTimer) {
+        clearTimeout(client.idleTimeoutTimer);
+      }
+      // this.idleConnections.splice(
+      //   this.idleConnections.findIndex((connection) => connection.uniqueId === client.uniqueId),
+      //   1,
+      // );
+      // void this._removeConnection(client);
+    });
 
     client.on('error', client.errorHandler);
     let connectionTimeoutTimer: NodeJS.Timeout | null = null;
@@ -589,7 +633,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
         new Promise((_, reject) => {
           connectionTimeoutTimer = setTimeout((): void => {
             reject(new Error('Timed out trying to connect to postgres'));
-          }, this.options.connectionTimeoutMillis);
+          }, this.options.waitForAvailableConnectionTimeoutMillis);
         }),
       ]);
 

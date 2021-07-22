@@ -160,6 +160,7 @@ const { Pool } = require('postgres-pool');
 const pool = new Pool({
   connectionString: 'postgres://username:pwd@127.0.0.1/db_name',
   poolSize: 10, // Default is 10 connections
+  minPoolSize: 0, // Default is 0 connections
 });
 ```
 
@@ -223,6 +224,21 @@ const pool = new Pool({
   reconnectOnConnectionError: true,                 // If the query should be retried when the database throws "Client has encountered a connection error and is not queryable"
   waitForReconnectConnectionMillis: 0,              // Milliseconds to wait between retry queries after receiving a connection error
   connectionReconnectTimeoutMillis: 90000,          // If queries continually return "Client has encountered a connection error and is not queryable", this is the total number of milliseconds to wait until an error is thrown
+});
+```
+
+### Debugging
+```ts
+const { Pool } = require('postgres-pool');
+
+const pool = new Pool({
+  connectionString: 'postgres://username:pwd@127.0.0.1/db_name',
+});
+// returns the time span of how long it took between requesting
+// and receiving a connection. Uses process.hrTime() internally
+pool.debugEmitter.on('receiveConnectionDelay', (startTime: HrTime, endTime: HrTime) => {
+  console.log('start time: ', startTime);
+  console.log('end time: ', endTime);
 });
 ```
 
