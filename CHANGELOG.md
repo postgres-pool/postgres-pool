@@ -1,3 +1,7 @@
+### 5.0.5
+  * Update npms
+  * Set sourceRoot when transpiling Typescript, to help with sourcemap paths
+
 ### 5.0.4
   * Update npms
 
