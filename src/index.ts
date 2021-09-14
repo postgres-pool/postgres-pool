@@ -456,6 +456,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
     let removeConnection = false;
     let timeoutError: Error | undefined;
     let connectionError: Error | undefined;
+
     try {
       const results = await connection.query<TRow>(text, values);
       return results;
@@ -574,6 +575,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
 
     client.on('error', client.errorHandler);
     let connectionTimeoutTimer: NodeJS.Timeout | null = null;
+
     try {
       await Promise.race([
         (async function connectClient(): Promise<void> {
@@ -701,7 +703,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
     } catch (ex) {
       const { message } = ex as Error;
       if (!/This socket has been ended by the other party/giu.test(message)) {
-        this.emit('error', ex);
+        this.emit('error', ex as Error);
       }
     }
 
