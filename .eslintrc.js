@@ -202,7 +202,6 @@ module.exports = {
         'no-unused-expressions': 'error',
         'no-restricted-syntax': ['error', 'DebuggerStatement', 'LabeledStatement', 'WithStatement'],
         'no-use-before-define': 'off',
-        'no-shadow': 'off',
 
         'import/prefer-default-export': 'off',
         'import/no-cycle': 'off',
