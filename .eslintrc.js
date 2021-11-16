@@ -42,6 +42,7 @@ module.exports = {
     'callback-return': ['error', ['callback', 'cb', 'next', 'done']],
     'class-methods-use-this': 'off',
     'consistent-return': 'off',
+    'default-param-last': 'off',
     'func-style': ['error', 'declaration', { allowArrowFunctions: false }],
     'handle-callback-err': ['error', '^.*err'],
     'new-cap': 'off',
