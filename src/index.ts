@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import type { ConnectionOptions } from 'tls';
 
+import _ from 'lodash';
 import type { Connection, QueryResult, QueryResultRow } from 'pg';
 import { Client } from 'pg';
 import type { StrictEventEmitter } from 'strict-event-emitter-types';
@@ -361,7 +362,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
         });
       }),
       // eslint-disable-next-line promise/param-names
-      new Promise((_, reject) => {
+      new Promise((__, reject) => {
         connectionTimeoutTimer = setTimeout(() => {
           this.connectionQueueEventEmitter.removeAllListeners(`connection_${id}`);
 
@@ -399,8 +400,13 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
    */
   public query<TRow extends QueryResultRow = any>(text: string, values?: any[] | { [index: string]: any }): Promise<QueryResult<TRow>> {
     /* eslint-enable @typescript-eslint/no-explicit-any */
-    if (!values || Array.isArray(values)) {
+    if (Array.isArray(values)) {
       return this._query(text, values);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    if (_.isEmpty(values) || !values) {
+      return this._query(text, []);
     }
 
     // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
@@ -588,7 +594,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
           }
         })(),
         // eslint-disable-next-line promise/param-names
-        new Promise((_, reject) => {
+        new Promise((__, reject) => {
           connectionTimeoutTimer = setTimeout((): void => {
             reject(new Error('Timed out trying to connect to postgres'));
           }, this.options.connectionTimeoutMillis);

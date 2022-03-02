@@ -279,7 +279,7 @@ describe('#query()', () => {
     const pool = new Pool({
       connectionString: 'postgres://foo:bar@baz:1234/xur',
     });
-    const expectedResult = faker.random.uuid();
+    const expectedResult = faker.datatype.uuid();
     const connection = {
       query() {},
       release() {},
@@ -334,9 +334,9 @@ describe('#query()', () => {
     });
     pool.connections.length.should.equal(0);
 
-    const expectedResult = faker.random.uuid();
+    const expectedResult = faker.datatype.uuid();
     const connection = {
-      uniqueId: faker.random.uuid(),
+      uniqueId: faker.datatype.uuid(),
       query() {},
       release() {},
     };
@@ -513,7 +513,7 @@ describe('#query()', () => {
       const pool = new Pool({
         connectionString: 'postgres://foo:bar@baz:1234/xur',
       });
-      const expectedResult = faker.random.uuid();
+      const expectedResult = faker.datatype.uuid();
       const connection = {
         query() {},
         release() {},
@@ -543,7 +543,7 @@ describe('#query()', () => {
       const pool = new Pool({
         connectionString: 'postgres://foo:bar@baz:1234/xur',
       });
-      const expectedResult = faker.random.uuid();
+      const expectedResult = faker.datatype.uuid();
       const connection = {
         query() {},
         release() {},
@@ -573,7 +573,7 @@ describe('#query()', () => {
       const pool = new Pool({
         connectionString: 'postgres://foo:bar@baz:1234/xur',
       });
-      const expectedResult = faker.random.uuid();
+      const expectedResult = faker.datatype.uuid();
       const connection = {
         query() {},
         release() {},
@@ -606,7 +606,7 @@ describe('#query()', () => {
       const pool = new Pool({
         connectionString: 'postgres://foo:bar@baz:1234/xur',
       });
-      const expectedResult = faker.random.uuid();
+      const expectedResult = faker.datatype.uuid();
       const connection = {
         query() {},
         release() {},
@@ -625,7 +625,34 @@ describe('#query()', () => {
       releaseStub.calledOnce.should.equal(true);
 
       queryStub.getCall(0).args[0].should.equal('select foo from foobar where foo=@foo');
-      (typeof queryStub.getCall(0).args[1] === 'undefined').should.equal(true);
+      Array.isArray(queryStub.getCall(0).args[1]).should.equal(true);
+      queryStub.getCall(0).args[1].length.should.equal(0);
+    });
+    it('should query with empty named parameters as []', async () => {
+      const pool = new Pool({
+        connectionString: 'postgres://foo:bar@baz:1234/xur',
+      });
+      const expectedResult = faker.datatype.uuid();
+      const connection = {
+        query() {},
+        release() {},
+      };
+      const connectStub = sinon.stub(pool, 'connect').returns(connection);
+      const queryStub = sinon.stub(connection, 'query').returns(expectedResult);
+      const releaseStub = sinon.stub(connection, 'release').returns(true);
+
+      await pool.query('select foo from foobar', {});
+      connectStub.restore();
+      queryStub.restore();
+      releaseStub.restore();
+
+      connectStub.calledOnce.should.equal(true);
+      queryStub.calledOnce.should.equal(true);
+      releaseStub.calledOnce.should.equal(true);
+
+      queryStub.getCall(0).args[0].should.equal('select foo from foobar');
+      Array.isArray(queryStub.getCall(0).args[1]).should.equal(true);
+      queryStub.getCall(0).args[1].length.should.equal(0);
     });
   });
 });
