@@ -362,7 +362,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
         });
       }),
       // eslint-disable-next-line promise/param-names
-      new Promise((__, reject) => {
+      new Promise((_resolve, reject) => {
         connectionTimeoutTimer = setTimeout(() => {
           this.connectionQueueEventEmitter.removeAllListeners(`connection_${id}`);
 
@@ -384,27 +384,26 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
    * @param {string} text
    * @param {object} values - Keys represent named parameters in the query
    */
-  public async query<TRow extends QueryResultRow = any>(text: string, values: { [index: string]: any }): Promise<QueryResult<TRow>>;
+  public async query<TRow extends QueryResultRow = any>(text: string, values: { [index: string]: unknown }): Promise<QueryResult<TRow>>;
 
   /**
    * Gets a connection to the database and executes the specified query. This method will release the connection back to the pool when the query has finished.
    * @param {string} text
    * @param {object[]} values
    */
-  public async query<TRow extends QueryResultRow = any>(text: string, values?: any[]): Promise<QueryResult<TRow>>;
+  public async query<TRow extends QueryResultRow = any>(text: string, values?: unknown[]): Promise<QueryResult<TRow>>;
 
   /**
    * Gets a connection to the database and executes the specified query. This method will release the connection back to the pool when the query has finished.
    * @param {string} text
    * @param {object | object[]} values - If an object, keys represent named parameters in the query
    */
-  public query<TRow extends QueryResultRow = any>(text: string, values?: any[] | { [index: string]: any }): Promise<QueryResult<TRow>> {
+  public query<TRow extends QueryResultRow = any>(text: string, values?: unknown[] | { [index: string]: unknown }): Promise<QueryResult<TRow>> {
     /* eslint-enable @typescript-eslint/no-explicit-any */
     if (Array.isArray(values)) {
       return this._query(text, values);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     if (_.isEmpty(values) || !values) {
       return this._query(text, []);
     }
@@ -457,7 +456,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private async _query<TRow extends QueryResultRow = any>(text: string, values?: any[], reconnectQueryStartTime?: [number, number]): Promise<QueryResult<TRow>> {
+  private async _query<TRow extends QueryResultRow = any>(text: string, values?: unknown[], reconnectQueryStartTime?: [number, number]): Promise<QueryResult<TRow>> {
     const connection = await this.connect();
     let removeConnection = false;
     let timeoutError: Error | undefined;
@@ -594,7 +593,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
           }
         })(),
         // eslint-disable-next-line promise/param-names
-        new Promise((__, reject) => {
+        new Promise((_resolve, reject) => {
           connectionTimeoutTimer = setTimeout((): void => {
             reject(new Error('Timed out trying to connect to postgres'));
           }, this.options.connectionTimeoutMillis);

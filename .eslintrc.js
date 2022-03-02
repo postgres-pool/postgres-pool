@@ -93,7 +93,7 @@ module.exports = {
     ],
 
     'jsdoc/check-alignment': 'error',
-    'jsdoc/check-indentation': 'off',
+    'jsdoc/check-indentation': 'error',
     'jsdoc/check-param-names': 'off',
     'jsdoc/check-tag-names': 'error',
     'jsdoc/check-types': 'error',

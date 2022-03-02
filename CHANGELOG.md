@@ -1,5 +1,10 @@
 # Change Log
 
+## 5.0.11 - 2022-03-02
+
+- Fix query incorrectly throwing error with empty parameter object. Thanks @tyler-neal!
+- Update npms
+
 ## 5.0.10 - 2022-02-22
 
 - Update npms
