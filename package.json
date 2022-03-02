@@ -1,6 +1,6 @@
 {
   "name": "postgres-pool",
-  "version": "5.0.11",
+  "version": "5.0.12",
   "description": "Node postgres connection pool implementation for node-pg",
   "main": "index.js",
   "types": "index.d.ts",

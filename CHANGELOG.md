@@ -1,5 +1,9 @@
 # Change Log
 
+## 5.0.12 - 2022-03-02
+
+- Restore `any` in `query()` definition
+
 ## 5.0.11 - 2022-03-02
 
 - Fix query incorrectly throwing error with empty parameter object. Thanks @tyler-neal!
