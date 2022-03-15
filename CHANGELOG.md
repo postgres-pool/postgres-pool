@@ -1,5 +1,9 @@
 # Change Log
 
+## 5.0.13 - 2022-03-15
+
+- Update npms
+
 ## 5.0.12 - 2022-03-02
 
 - Restore `any` in `query()` definition
