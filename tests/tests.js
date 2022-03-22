@@ -1,7 +1,7 @@
 const assert = require('assert');
 
+const { faker } = require('@faker-js/faker');
 const chai = require('chai');
-const faker = require('faker');
 const { Client } = require('pg');
 const sinon = require('sinon');
 
