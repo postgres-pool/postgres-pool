@@ -405,7 +405,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
     }
 
     if (_.isEmpty(values) || !values) {
-      return this._query(text, []);
+      return this._query(text);
     }
 
     // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
