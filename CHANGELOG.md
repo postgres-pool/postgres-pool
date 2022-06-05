@@ -1,5 +1,10 @@
 # Change Log
 
+## 6.0.1
+
+- Fix query with object. Fix #62 Thanks @furiozo-ga!
+- Update npms
+
 ## 6.0.0
 
 - Drop support for Node.js 12

@@ -7,7 +7,7 @@ const sinon = require('sinon');
 
 const { Pool } = require('../dist/index');
 
-chai.should();
+const should = chai.should();
 chai.use(require('chai-as-promised'));
 
 describe('#constructor()', () => {
@@ -625,10 +625,9 @@ describe('#query()', () => {
       releaseStub.calledOnce.should.equal(true);
 
       queryStub.getCall(0).args[0].should.equal('select foo from foobar where foo=@foo');
-      Array.isArray(queryStub.getCall(0).args[1]).should.equal(true);
-      queryStub.getCall(0).args[1].length.should.equal(0);
+      should.not.exist(queryStub.getCall(0).args[1]);
     });
-    it('should query with empty named parameters as []', async () => {
+    it('should query with empty named parameters as undefined', async () => {
       const pool = new Pool({
         connectionString: 'postgres://foo:bar@baz:1234/xur',
       });
@@ -651,8 +650,38 @@ describe('#query()', () => {
       releaseStub.calledOnce.should.equal(true);
 
       queryStub.getCall(0).args[0].should.equal('select foo from foobar');
-      Array.isArray(queryStub.getCall(0).args[1]).should.equal(true);
-      queryStub.getCall(0).args[1].length.should.equal(0);
+      should.not.exist(queryStub.getCall(0).args[1]);
+    });
+    it('should allow quering with object', async () => {
+      const pool = new Pool({
+        connectionString: 'postgres://foo:bar@baz:1234/xur',
+      });
+      const expectedResult = faker.datatype.uuid();
+      const connection = {
+        query() {},
+        release() {},
+      };
+      const connectStub = sinon.stub(pool, 'connect').returns(connection);
+      const queryStub = sinon.stub(connection, 'query').returns(expectedResult);
+      const releaseStub = sinon.stub(connection, 'release').returns(true);
+
+      const queryObject = {
+        text: 'select foo from foobar where id=$1',
+        values: 'foo',
+        rowMode: 'array',
+      };
+
+      await pool.query(queryObject);
+      connectStub.restore();
+      queryStub.restore();
+      releaseStub.restore();
+
+      connectStub.calledOnce.should.equal(true);
+      queryStub.calledOnce.should.equal(true);
+      releaseStub.calledOnce.should.equal(true);
+
+      queryStub.getCall(0).args[0].should.equal(queryObject);
+      should.not.exist(queryStub.getCall(0).args[1]);
     });
   });
 });
