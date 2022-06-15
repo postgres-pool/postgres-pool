@@ -3,7 +3,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import type { ConnectionOptions } from 'tls';
 
-import _ from 'lodash';
 import type { Connection, QueryResult, QueryResultRow } from 'pg';
 import { Client } from 'pg';
 import type { StrictEventEmitter } from 'strict-event-emitter-types';
@@ -404,7 +403,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
       return this._query(text, values);
     }
 
-    if (_.isEmpty(values) || !values) {
+    if (!values || !Object.keys(values).length) {
       return this._query(text);
     }
 

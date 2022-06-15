@@ -51,7 +51,6 @@
   "dependencies": {
     "@types/pg": "^8.6.5",
     "@types/uuid": "^8.3.4",
-    "lodash": "4.17.21",
     "pg": "^8.7.3",
     "strict-event-emitter-types": "^2.0.0",
     "uuid": "^8.3.2"
