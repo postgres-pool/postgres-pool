@@ -1,16 +1,20 @@
 # Change Log
 
-## 6.0.2
+## 6.0.3 - 2022-06-29
+
+- Update npms
+
+## 6.0.2 - 2022-06-15
 
 - Remove lodash dependency. Fix #63 Thanks @furiozo-ga!
 - Update npms
 
-## 6.0.1
+## 6.0.1 - 2022-06-05
 
 - Fix query with object. Fix #62 Thanks @furiozo-ga!
 - Update npms
 
-## 6.0.0
+## 6.0.0 - 2022-05-23
 
 - Drop support for Node.js 12
 - Update npms
