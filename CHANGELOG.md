@@ -1,5 +1,9 @@
 # Change Log
 
+## 6.0.5 - 2022-10-11
+
+- Update npms
+
 ## 6.0.4 - 2022-08-30
 
 - Update npms
