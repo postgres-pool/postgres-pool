@@ -1,5 +1,9 @@
 # Change Log
 
+## 6.0.8 - 2023-01-13
+
+- Update npms
+
 ## 6.0.7 - 2022-12-06
 
 - Update npms
