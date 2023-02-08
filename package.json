@@ -10,7 +10,7 @@
     "lint:markdown": "prettier --cache --write '*.md' '!(node_modules|dist)/**/*.md' && markdownlint '*.md' '!(node_modules|dist)/**/*.md' --config=.github/linters/.markdown-lint.yml --fix",
     "lint:code": "eslint --fix --ext .ts,.js src tests",
     "lint": "run-p lint:*",
-    "test": "mocha tests/tests.js",
+    "test": "mocha tests/tests.ts",
     "lint-staged": "lint-staged",
     "dist": "if [ -d \"src\" ]; then rm -rf dist && npm run build && npm run lint && npm run test && cp package.json dist && cp package-lock.json dist && cp *.md dist && cp .npmignore dist && mkdir dist/certs && cp certs/* dist/certs && cd dist && npm publish; fi",
     "prepublishOnly": "if [ -d \"src\" ]; then echo \"Please use: npm run dist\" && exit 125; fi && pinst --disable",
