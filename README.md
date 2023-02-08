@@ -197,8 +197,8 @@ const pool = new Pool({
   idleTimeoutMillis: 10000,
   // Time to wait to obtain a connection from the pool. Default is 90s
   waitForAvailableConnectionTimeoutMillis: 90000,
-  // Max time to connect to postgres. Default is 30s
-  connectionTimeoutMillis: 30000,
+  // Max time to connect to postgres. Default is 5s
+  connectionTimeoutMillis: 5000,
 });
 ```
 
@@ -250,7 +250,7 @@ const pool = new Pool({
 
 ## Compatibility
 
-- Node.js v12 or above
+- Node.js v16 or above
 
 ## License
 

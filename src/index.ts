@@ -1,12 +1,15 @@
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import * as path from 'path';
+import { setTimeout as setTimeoutPromise } from 'timers/promises';
 import type { ConnectionOptions } from 'tls';
 
 import type { Connection, QueryResult, QueryResultRow } from 'pg';
 import { Client } from 'pg';
 import type { StrictEventEmitter } from 'strict-event-emitter-types';
 import { v4 } from 'uuid';
+
+import { ErrorWithCode } from './ErrorWithCode';
 
 export interface SslSettings {
   /**
@@ -262,10 +265,10 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
       poolSize: 10,
       idleTimeoutMillis: 10000,
       waitForAvailableConnectionTimeoutMillis: 90000,
-      connectionTimeoutMillis: 30000,
+      connectionTimeoutMillis: 5000,
       retryConnectionMaxRetries: 5,
       retryConnectionWaitMillis: 100,
-      retryConnectionErrorCodes: ['ENOTFOUND', 'EAI_AGAIN'],
+      retryConnectionErrorCodes: ['ENOTFOUND', 'EAI_AGAIN', 'ERR_PG_CONNECT_TIMEOUT', 'timeout expired'],
       reconnectOnDatabaseIsStartingError: true,
       waitForDatabaseStartupMillis: 0,
       databaseStartupTimeoutMillis: 90000,
@@ -310,7 +313,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
    */
   public async connect(): Promise<PoolClient> {
     if (this.isEnding) {
-      throw new Error('Cannot use pool after calling end() on the pool');
+      throw new ErrorWithCode('Cannot use pool after calling end() on the pool', 'ERR_PG_CONNECT_POOL_ENDED');
     }
 
     const idleConnection = this.idleConnections.shift();
@@ -360,20 +363,19 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
           resolve(client);
         });
       }),
-      // eslint-disable-next-line promise/param-names
-      new Promise((_resolve, reject) => {
-        connectionTimeoutTimer = setTimeout(() => {
-          this.connectionQueueEventEmitter.removeAllListeners(`connection_${id}`);
+      (async (): Promise<void> => {
+        connectionTimeoutTimer = await setTimeoutPromise(this.options.waitForAvailableConnectionTimeoutMillis);
 
-          // Remove this connection attempt from the connection queue
-          const index = this.connectionQueue.indexOf(id);
-          if (index > -1) {
-            this.connectionQueue.splice(index, 1);
-          }
+        this.connectionQueueEventEmitter.removeAllListeners(`connection_${id}`);
 
-          reject(new Error('Timed out while waiting for available connection in pool'));
-        }, this.options.waitForAvailableConnectionTimeoutMillis);
-      }),
+        // Remove this connection attempt from the connection queue
+        const index = this.connectionQueue.indexOf(id);
+        if (index > -1) {
+          this.connectionQueue.splice(index, 1);
+        }
+
+        throw new ErrorWithCode('Timed out while waiting for available connection in pool', 'ERR_PG_CONNECT_POOL_CONNECTION_TIMEOUT');
+      })(),
     ])) as PoolClient;
   }
 
@@ -410,7 +412,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
     // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
     const tokenMatches = text.match(this.options.namedParameterFindRegExp);
     if (!tokenMatches) {
-      throw new Error('Did not find named parameters in in the query. Expected named parameter form is @foo');
+      throw new ErrorWithCode('Did not find named parameters in in the query. Expected named parameter form is @foo', 'ERR_PG_QUERY_NO_NAMED_PARAMETERS');
     }
 
     // Get unique token names
@@ -425,7 +427,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
     }
 
     if (missingParameters.length) {
-      throw new Error(`Missing query parameter(s): ${missingParameters.join(', ')}`);
+      throw new ErrorWithCode(`Missing query parameter(s): ${missingParameters.join(', ')}`, 'ERR_PG_QUERY_MISSING_QUERY_PARAMETER');
     }
 
     let sql = text.slice();
@@ -497,19 +499,11 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
     }
 
     if (timeoutError && this.options.waitForReconnectReadOnlyTransactionMillis > 0) {
-      await new Promise<void>((resolve) => {
-        setTimeout(() => {
-          resolve();
-        }, this.options.waitForReconnectReadOnlyTransactionMillis);
-      });
+      await setTimeoutPromise(this.options.waitForReconnectReadOnlyTransactionMillis);
     }
 
     if (connectionError && this.options.waitForReconnectConnectionMillis > 0) {
-      await new Promise<void>((resolve) => {
-        setTimeout(() => {
-          resolve();
-        }, this.options.waitForReconnectConnectionMillis);
-      });
+      await setTimeoutPromise(this.options.waitForReconnectConnectionMillis);
     }
 
     const diff = process.hrtime(reconnectQueryStartTime);
@@ -579,6 +573,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
 
     client.on('error', client.errorHandler);
     let connectionTimeoutTimer: NodeJS.Timeout | null = null;
+    const { connectionTimeoutMillis } = this.options;
 
     try {
       await Promise.race([
@@ -591,12 +586,10 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
             }
           }
         })(),
-        // eslint-disable-next-line promise/param-names
-        new Promise((_resolve, reject) => {
-          connectionTimeoutTimer = setTimeout((): void => {
-            reject(new Error('Timed out trying to connect to postgres'));
-          }, this.options.connectionTimeoutMillis);
-        }),
+        (async function connectTimeout(): Promise<void> {
+          connectionTimeoutTimer = await setTimeoutPromise(connectionTimeoutMillis);
+          throw new ErrorWithCode('Timed out trying to connect to postgres', 'ERR_PG_CONNECT_TIMEOUT');
+        })(),
       ]);
 
       this.emit('connectionAddedToPool', {
@@ -613,7 +606,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
 
       await client.end();
 
-      const { message, code } = ex as Error & { code: string };
+      const { message, code } = ex as ErrorWithCode;
       let retryConnection = false;
       if (this.options.retryConnectionMaxRetries) {
         if (code) {
@@ -632,11 +625,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
         this.emit('retryConnectionOnError');
 
         if (this.options.retryConnectionWaitMillis > 0) {
-          await new Promise<void>((resolve) => {
-            setTimeout((): void => {
-              resolve();
-            }, this.options.retryConnectionWaitMillis);
-          });
+          await setTimeoutPromise(this.options.retryConnectionWaitMillis);
         }
 
         const connectionAfterRetry = await this._createConnection(connectionId, retryAttempt + 1, createConnectionStartTime, databaseStartupStartTime);
@@ -652,11 +641,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
         }
 
         if (this.options.waitForDatabaseStartupMillis > 0) {
-          await new Promise<void>((resolve) => {
-            setTimeout((): void => {
-              resolve();
-            }, this.options.waitForDatabaseStartupMillis);
-          });
+          await setTimeoutPromise(this.options.waitForDatabaseStartupMillis);
         }
 
         const diff = process.hrtime(databaseStartupStartTime);

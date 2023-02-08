@@ -1,5 +1,20 @@
 # Change Log
 
+## 7.0.0 - 2023-02-07
+
+### BREAKING CHANGES
+
+- Drop support for Node.js 14
+- Change connection timeout default from 30s to 5s
+
+### BUG FIXES
+
+- Fix retry connection on timeout
+
+### MAINTENANCE
+
+- Update npms
+
 ## 6.0.8 - 2023-01-13
 
 - Update npms
