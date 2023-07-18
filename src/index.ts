@@ -385,7 +385,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
    * @param {string} text
    * @param {object} values - Keys represent named parameters in the query
    */
-  public async query<TRow extends QueryResultRow = any>(text: string, values: { [index: string]: any }): Promise<QueryResult<TRow>>;
+  public async query<TRow extends QueryResultRow = any>(text: string, values: Record<string, any>): Promise<QueryResult<TRow>>;
 
   /**
    * Gets a connection to the database and executes the specified query. This method will release the connection back to the pool when the query has finished.
@@ -399,7 +399,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
    * @param {string} text
    * @param {object | object[]} values - If an object, keys represent named parameters in the query
    */
-  public query<TRow extends QueryResultRow = any>(text: string, values?: any[] | { [index: string]: any }): Promise<QueryResult<TRow>> {
+  public query<TRow extends QueryResultRow = any>(text: string, values?: any[] | Record<string, any>): Promise<QueryResult<TRow>> {
     /* eslint-enable @typescript-eslint/no-explicit-any */
     if (Array.isArray(values)) {
       return this._query(text, values);
@@ -581,6 +581,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
           try {
             await client.connect();
           } finally {
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
             if (connectionTimeoutTimer) {
               clearTimeout(connectionTimeoutTimer);
             }

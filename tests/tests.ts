@@ -794,7 +794,12 @@ describe('postgres-pool', () => {
 
       const warmConnections: WithProcessId[] = await Promise.all([pool1.connect(), pool2.connect()]);
 
-      await Promise.all(warmConnections.map((connection) => connection.release()));
+      await Promise.all(
+        // eslint-disable-next-line array-callback-return
+        warmConnections.map((connection) => {
+          connection.release();
+        }),
+      );
 
       const processIds = [];
       for (const connection of warmConnections) {
@@ -849,7 +854,12 @@ describe('postgres-pool', () => {
 
       const warmConnections: WithProcessId[] = await Promise.all([pool1.connect(), pool1.connect(), pool2.connect(), pool2.connect()]);
 
-      await Promise.all(warmConnections.map((connection) => connection.release()));
+      await Promise.all(
+        // eslint-disable-next-line array-callback-return
+        warmConnections.map((connection) => {
+          connection.release();
+        }),
+      );
 
       const processIds = [];
       for (const connection of warmConnections) {
@@ -904,7 +914,12 @@ describe('postgres-pool', () => {
 
       const warmConnections: WithProcessId[] = await Promise.all([pool1.connect(), pool1.connect(), pool2.connect(), pool2.connect()]);
 
-      await Promise.all(warmConnections.map((connection) => connection.release()));
+      await Promise.all(
+        // eslint-disable-next-line array-callback-return
+        warmConnections.map((connection) => {
+          connection.release();
+        }),
+      );
 
       const processIds = [];
       for (const connection of warmConnections) {
