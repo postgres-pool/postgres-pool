@@ -1,5 +1,16 @@
 # Change Log
 
+## 8.0.0 - 2023-10-03
+
+### BREAKING CHANGES (8.0.0)
+
+- Drop support for Node.js 16
+
+### NON-BREAKING CHANGES (8.0.0)
+
+- Add `drainIdleConnections()`. Fix #67
+- Update npms
+
 ## 7.0.2 - 2023-07-18
 
 - Update npms
@@ -10,16 +21,16 @@
 
 ## 7.0.0 - 2023-02-07
 
-### BREAKING CHANGES
+### BREAKING CHANGES (7.0.0)
 
 - Drop support for Node.js 14
 - Change connection timeout default from 30s to 5s
 
-### BUG FIXES
+### BUG FIXES (7.0.0)
 
 - Fix retry connection on timeout
 
-### MAINTENANCE
+### MAINTENANCE (7.0.0)
 
 - Update npms
 
