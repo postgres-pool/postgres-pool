@@ -444,15 +444,18 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
   }
 
   /**
-   * Drains the pool of all active client connections. Used to shut down the pool down cleanly
+   * Drains the pool of all active client connections and prevents additional connections
    */
   public end(): Promise<void> {
     this.isEnding = true;
 
-    return this._drainAllIdle();
+    return this.drainIdleConnections();
   }
 
-  private async _drainAllIdle(): Promise<void> {
+  /**
+   * Drains the pool of all idle client connections.
+   */
+  public async drainIdleConnections(): Promise<void> {
     await Promise.all([...this.idleConnections].map((idleConnection: PoolClient) => this._removeConnection(idleConnection)));
   }
 
@@ -491,7 +494,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
     }
 
     // Clear all idle connections and try the query again with a fresh connection
-    await this._drainAllIdle();
+    await this.drainIdleConnections();
 
     if (!reconnectQueryStartTime) {
       // eslint-disable-next-line no-param-reassign
