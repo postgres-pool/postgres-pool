@@ -1,5 +1,12 @@
 # Change Log
 
+## 8.1.0 - 2023-10-27
+
+- Update npms
+- Update AWS TLS to use the updated global bundle for all regions.
+
+  NOTE: `certs/rds-ca-2019-root.pem` is deprecated and will be removed in a future release.
+
 ## 8.0.0 - 2023-10-03
 
 ### BREAKING CHANGES (8.0.0)

@@ -124,7 +124,7 @@ import { Pool } from 'postgres-pool';
 const pool = new Pool({
   ssl: {
     rejectUnauthorized: true,
-    ca: fs.readFileSync('./certs/rds-ca-2019-root.pem'),
+    ca: fs.readFileSync('./certs/rds-global-bundle.pem'),
     minVersion: 'TLSv1.2',
   },
 });
