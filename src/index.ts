@@ -189,7 +189,7 @@ export interface PoolOptionsImplicit {
 
 export type PoolClient = Client & {
   uniqueId: string;
-  idleTimeoutTimer?: NodeJS.Timer;
+  idleTimeoutTimer?: NodeJS.Timeout;
   release: (removeConnection?: boolean) => Promise<void>;
   errorHandler: (err: Error) => void;
 };
