@@ -1,5 +1,9 @@
 # Change Log
 
+## 8.1.2 - 2024-01-05
+
+- Update npms
+
 ## 8.1.1 - 2023-11-28
 
 - Update npms
