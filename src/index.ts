@@ -9,7 +9,7 @@ import { Client } from 'pg';
 import type { StrictEventEmitter } from 'strict-event-emitter-types';
 import { v4 } from 'uuid';
 
-import { ErrorWithCode } from './ErrorWithCode';
+import { ErrorWithCode } from './ErrorWithCode.js';
 
 export interface SslSettings {
   /**
@@ -120,12 +120,12 @@ export interface PoolOptionsBase {
   /**
    * Throw an error if a query takes longer than the specified milliseconds
    */
-  // eslint-disable-next-line @typescript-eslint/naming-convention
+   
   query_timeout?: number;
   /**
    * Abort a query statement if it takes longer than the specified milliseconds
    */
-  // eslint-disable-next-line @typescript-eslint/naming-convention
+   
   statement_timeout?: number;
 }
 
@@ -154,9 +154,9 @@ export interface PoolOptionsExplicit {
   namedParameterFindRegExp?: RegExp;
   getNamedParameterReplaceRegExp?: (namedParameter: string) => RegExp;
   getNamedParameterName?: (namedParameterWithSymbols: string) => string;
-  // eslint-disable-next-line @typescript-eslint/naming-convention
+   
   query_timeout?: number;
-  // eslint-disable-next-line @typescript-eslint/naming-convention
+   
   statement_timeout?: number;
 }
 
@@ -181,9 +181,9 @@ export interface PoolOptionsImplicit {
   namedParameterFindRegExp?: RegExp;
   getNamedParameterReplaceRegExp?: (namedParameter: string) => RegExp;
   getNamedParameterName?: (namedParameterWithSymbols: string) => string;
-  // eslint-disable-next-line @typescript-eslint/naming-convention
+   
   query_timeout?: number;
-  // eslint-disable-next-line @typescript-eslint/naming-convention
+   
   statement_timeout?: number;
 }
 
@@ -258,7 +258,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
   protected isEnding = false;
 
   public constructor(options: SslSettingsOrAwsRdsSsl & (PoolOptionsExplicit | PoolOptionsImplicit)) {
-    // eslint-disable-next-line constructor-super
+     
     super();
 
     const defaultOptions: PoolOptionsBase = {
@@ -409,7 +409,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
       return this._query(text);
     }
 
-    // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
+     
     const tokenMatches = text.match(this.options.namedParameterFindRegExp);
     if (!tokenMatches) {
       throw new ErrorWithCode('Did not find named parameters in in the query. Expected named parameter form is @foo', 'ERR_PG_QUERY_NO_NAMED_PARAMETERS');
@@ -497,7 +497,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
     await this.drainIdleConnections();
 
     if (!reconnectQueryStartTime) {
-      // eslint-disable-next-line no-param-reassign
+       
       reconnectQueryStartTime = process.hrtime();
     }
 
@@ -557,7 +557,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
         this.connectionQueueEventEmitter.emit(`connection_${id}`, client);
       } else if (this.options.idleTimeoutMillis > 0) {
         client.idleTimeoutTimer = setTimeout((): void => {
-          // eslint-disable-next-line no-void
+           
           void this._removeConnection(client);
         }, this.options.idleTimeoutMillis);
 
@@ -570,7 +570,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
 
     client.errorHandler = (err: Error): void => {
       // fire and forget, we will always emit the error.
-      // eslint-disable-next-line no-void
+       
       void this._removeConnection(client).finally(() => this.emit('error', err, client));
     };
 
@@ -640,7 +640,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
         this.emit('waitingForDatabaseToStart');
 
         if (!databaseStartupStartTime) {
-          // eslint-disable-next-line no-param-reassign
+           
           databaseStartupStartTime = process.hrtime();
         }
 
