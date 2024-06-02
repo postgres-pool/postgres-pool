@@ -120,12 +120,10 @@ export interface PoolOptionsBase {
   /**
    * Throw an error if a query takes longer than the specified milliseconds
    */
-   
   query_timeout?: number;
   /**
    * Abort a query statement if it takes longer than the specified milliseconds
    */
-   
   statement_timeout?: number;
 }
 
@@ -154,9 +152,7 @@ export interface PoolOptionsExplicit {
   namedParameterFindRegExp?: RegExp;
   getNamedParameterReplaceRegExp?: (namedParameter: string) => RegExp;
   getNamedParameterName?: (namedParameterWithSymbols: string) => string;
-   
   query_timeout?: number;
-   
   statement_timeout?: number;
 }
 
@@ -181,9 +177,7 @@ export interface PoolOptionsImplicit {
   namedParameterFindRegExp?: RegExp;
   getNamedParameterReplaceRegExp?: (namedParameter: string) => RegExp;
   getNamedParameterName?: (namedParameterWithSymbols: string) => string;
-   
   query_timeout?: number;
-   
   statement_timeout?: number;
 }
 
@@ -258,7 +252,6 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
   protected isEnding = false;
 
   public constructor(options: SslSettingsOrAwsRdsSsl & (PoolOptionsExplicit | PoolOptionsImplicit)) {
-     
     super();
 
     const defaultOptions: PoolOptionsBase = {
@@ -296,7 +289,6 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
     if (ssl === 'aws-rds') {
       this.options.ssl = {
         rejectUnauthorized: true,
-         
         ca: fs.readFileSync(path.join(__dirname, './certs/rds-global-bundle.pem')),
         minVersion: 'TLSv1.2',
       };
@@ -409,7 +401,6 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
       return this._query(text);
     }
 
-     
     const tokenMatches = text.match(this.options.namedParameterFindRegExp);
     if (!tokenMatches) {
       throw new ErrorWithCode('Did not find named parameters in in the query. Expected named parameter form is @foo', 'ERR_PG_QUERY_NO_NAMED_PARAMETERS');
@@ -497,7 +488,6 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
     await this.drainIdleConnections();
 
     if (!reconnectQueryStartTime) {
-       
       reconnectQueryStartTime = process.hrtime();
     }
 
@@ -557,7 +547,6 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
         this.connectionQueueEventEmitter.emit(`connection_${id}`, client);
       } else if (this.options.idleTimeoutMillis > 0) {
         client.idleTimeoutTimer = setTimeout((): void => {
-           
           void this._removeConnection(client);
         }, this.options.idleTimeoutMillis);
 
@@ -570,7 +559,6 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
 
     client.errorHandler = (err: Error): void => {
       // fire and forget, we will always emit the error.
-       
       void this._removeConnection(client).finally(() => this.emit('error', err, client));
     };
 
@@ -640,7 +628,6 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
         this.emit('waitingForDatabaseToStart');
 
         if (!databaseStartupStartTime) {
-           
           databaseStartupStartTime = process.hrtime();
         }
 

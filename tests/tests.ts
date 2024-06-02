@@ -55,6 +55,7 @@ describe('postgres-pool', () => {
         endStub.restore();
       }
     });
+
     it('should call end() if timeout during connecting', async () => {
       const connectStub = sinon.stub(Client.prototype, 'connect').resolves(setTimeout(10000));
       const endStub = sinon.stub(Client.prototype, 'end');
@@ -77,6 +78,7 @@ describe('postgres-pool', () => {
 
       endStub.calledOnce.should.equal(true);
     });
+
     it('should not consume a pool connection when connecting times out - timeout expired', async () => {
       const connectStub = sinon.stub(Client.prototype, 'connect').throws(new Error('timeout expired'));
       const endStub = sinon.stub(Client.prototype, 'end');
@@ -101,6 +103,7 @@ describe('postgres-pool', () => {
       pool.idleCount.should.equal(0);
       pool.totalCount.should.equal(0);
     });
+
     it('should not consume a pool connection when connecting times out - ERR_PG_CONNECT_TIMEOUT', async () => {
       const connectStub = sinon.stub(Client.prototype, 'connect').resolves(setTimeout(10000));
       const endStub = sinon.stub(Client.prototype, 'end');
@@ -125,6 +128,7 @@ describe('postgres-pool', () => {
       pool.idleCount.should.equal(0);
       pool.totalCount.should.equal(0);
     });
+
     it('should emit "connectionAddedToPool" after successful connection', async () => {
       const startTime = process.hrtime.bigint();
       let connectionStartTime;
@@ -146,6 +150,7 @@ describe('postgres-pool', () => {
       assert(connectionStartTime);
       (connectionStartTime > startTime).should.equal(true);
     });
+
     it('should not emit "connectionAddedToPool" if connection fails', async () => {
       const connectionAddedToPoolCalled = false;
       const connectStub = sinon.stub(Client.prototype, 'connect').resolves(setTimeout(10000));
@@ -168,6 +173,7 @@ describe('postgres-pool', () => {
 
       connectionAddedToPoolCalled.should.equal(false);
     });
+
     it('should retry connection if client throws "timeout expired" on first attempt', async () => {
       const connectStub = sinon.stub(Client.prototype, 'connect');
       connectStub.onCall(0).throws(new Error('timeout expired'));
@@ -190,6 +196,7 @@ describe('postgres-pool', () => {
       pool.idleCount.should.equal(0);
       pool.totalCount.should.equal(1);
     });
+
     it('should retry connection if ERR_PG_CONNECT_TIMEOUT is thrown on first attempt', async () => {
       const connectStub = sinon.stub(Client.prototype, 'connect');
       connectStub.onCall(0).resolves(setTimeout(10000));
@@ -212,6 +219,7 @@ describe('postgres-pool', () => {
       pool.idleCount.should.equal(0);
       pool.totalCount.should.equal(1);
     });
+
     describe('retryQueryWhenDatabaseIsStarting', () => {
       it('should not try to reconnect if reconnectOnDatabaseIsStartingError=false and "the database system is starting up" is thrown', async () => {
         const pool = new Pool({
@@ -231,6 +239,7 @@ describe('postgres-pool', () => {
 
         connectStub.calledOnce.should.equal(true);
       });
+
       it('should not try to query again if reconnectOnDatabaseIsStartingError=true and random error is thrown', async () => {
         const pool = new Pool({
           connectionString: 'postgres://foo:bar@baz:1234/xur',
@@ -249,6 +258,7 @@ describe('postgres-pool', () => {
 
         connectStub.calledOnce.should.equal(true);
       });
+
       it('should not try to query again if reconnectOnDatabaseIsStartingError=true and no error is thrown', async () => {
         const pool = new Pool({
           connectionString: 'postgres://foo:bar@baz:1234/xur',
@@ -274,6 +284,7 @@ describe('postgres-pool', () => {
         queryStub.calledOnce.should.equal(true);
         endStub.calledOnce.should.equal(true);
       });
+
       it('should try connecting again if reconnectOnDatabaseIsStartingError=true and "the database system is starting up" is thrown', async () => {
         const pool = new Pool({
           connectionString: 'postgres://foo:bar@baz:1234/xur',
@@ -302,6 +313,7 @@ describe('postgres-pool', () => {
         queryStub.calledOnce.should.equal(true);
         endStub.calledTwice.should.equal(true);
       });
+
       it('should try connecting immediately if reconnectOnDatabaseIsStartingError=true and "the database system is starting up" is thrown and waitForDatabaseStartupMillis=0', async () => {
         const pool = new Pool({
           connectionString: 'postgres://foo:bar@baz:1234/xur',
@@ -358,6 +370,7 @@ describe('postgres-pool', () => {
 
       result.should.equal(expectedResult);
     });
+
     it('should release the connection if the query throws', async () => {
       const pool = new Pool({
         connectionString: 'postgres://foo:bar@baz:1234/xur',
@@ -384,6 +397,7 @@ describe('postgres-pool', () => {
       queryStub.calledOnce.should.equal(true);
       releaseStub.calledOnce.should.equal(true);
     });
+
     it('should limit total connections based on poolSize', async () => {
       const poolSize = 2;
       const pool = new Pool({
@@ -418,6 +432,7 @@ describe('postgres-pool', () => {
       // @ts-expect-error - Connections is protected
       pool.connections.length.should.equal(poolSize);
     });
+
     describe('retryQueryWhenDatabaseIsStarting', () => {
       it('should not try connecting again if retryQueryWhenDatabaseIsStarting=false and "cannot execute X in a read-only transaction" is thrown', async () => {
         const pool = new Pool({
@@ -446,6 +461,7 @@ describe('postgres-pool', () => {
         queryStub.calledOnce.should.equal(true);
         releaseStub.calledOnce.should.equal(true);
       });
+
       it('should not try connecting again if reconnectOnReadOnlyTransactionError=true and non-read-only transaction error is thrown', async () => {
         const pool = new Pool({
           connectionString: 'postgres://foo:bar@baz:1234/xur',
@@ -473,6 +489,7 @@ describe('postgres-pool', () => {
         queryStub.calledOnce.should.equal(true);
         releaseStub.calledOnce.should.equal(true);
       });
+
       it('should not try connecting again if reconnectOnReadOnlyTransactionError=true and no error is thrown', async () => {
         const pool = new Pool({
           connectionString: 'postgres://foo:bar@baz:1234/xur',
@@ -501,6 +518,7 @@ describe('postgres-pool', () => {
         queryStub.calledOnce.should.equal(true);
         releaseStub.calledOnce.should.equal(true);
       });
+
       it('should try connecting again if reconnectOnReadOnlyTransactionError=true and "cannot execute X in a read-only transaction" is thrown', async () => {
         const pool = new Pool({
           connectionString: 'postgres://foo:bar@baz:1234/xur',
@@ -532,6 +550,7 @@ describe('postgres-pool', () => {
         queryStub.calledTwice.should.equal(true);
         releaseStub.calledTwice.should.equal(true);
       });
+
       it('should try connecting immediately if reconnectOnReadOnlyTransactionError=true and "cannot execute X in a read-only transaction" is thrown and waitForReconnectReadOnlyTransactionMillis=0', async () => {
         const pool = new Pool({
           connectionString: 'postgres://foo:bar@baz:1234/xur',
@@ -564,6 +583,7 @@ describe('postgres-pool', () => {
         releaseStub.calledTwice.should.equal(true);
       });
     });
+
     describe('Named Parameters', () => {
       it('should convert a query with named parameters to pg query syntax', async () => {
         // NOTE: This checks for:
@@ -601,6 +621,7 @@ describe('postgres-pool', () => {
         queryStub.getCall(0).args[0].should.equal('select foo from foobar where id=$1 and (bar=$2 or bar=$3) and foo=$3');
         queryStub.getCall(0).args[1].should.deep.equal(['lorem', 'lorem - foobar', 'lorem - foo']);
       });
+
       it('should throw if a named parameter is specified in the query string but not present in the query object', async () => {
         const pool = new Pool({
           connectionString: 'postgres://foo:bar@baz:1234/xur',
@@ -631,6 +652,7 @@ describe('postgres-pool', () => {
         queryStub.called.should.equal(false);
         releaseStub.called.should.equal(false);
       });
+
       it('should ignore a query with named parameters if the query object is an array', async () => {
         const pool = new Pool({
           connectionString: 'postgres://foo:bar@baz:1234/xur',
@@ -664,6 +686,7 @@ describe('postgres-pool', () => {
           },
         ]);
       });
+
       it('should ignore a query with named parameters if the query object is undefined', async () => {
         const pool = new Pool({
           connectionString: 'postgres://foo:bar@baz:1234/xur',
@@ -689,6 +712,7 @@ describe('postgres-pool', () => {
         queryStub.getCall(0).args[0].should.equal('select foo from foobar where foo=@foo');
         should.not.exist(queryStub.getCall(0).args[1]);
       });
+
       it('should query with empty named parameters as undefined', async () => {
         const pool = new Pool({
           connectionString: 'postgres://foo:bar@baz:1234/xur',
@@ -723,6 +747,7 @@ describe('postgres-pool', () => {
     }
 
     const connectionString = 'postgres://postgres:postgres@127.0.0.1:5432/postgres';
+
     it('should leave connection idle after calling connect() & release() and close all connections after calling end()', async () => {
       const pool1 = new Pool({
         connectionString,
@@ -781,6 +806,7 @@ describe('postgres-pool', () => {
       rowsAfterEnd.should.deep.equal([]);
       await validatorPool.end();
     });
+
     it('should properly close connections in Promise.all()', async () => {
       const pool1 = new Pool({
         connectionString,
@@ -841,6 +867,7 @@ describe('postgres-pool', () => {
       rowsAfterEnd.should.deep.equal([]);
       await validatorPool.end();
     });
+
     it('should properly close multiple connections from multiple pools with Promise.all()', async () => {
       const pool1 = new Pool({
         connectionString,
@@ -901,6 +928,7 @@ describe('postgres-pool', () => {
       rowsAfterEnd.should.deep.equal([]);
       await validatorPool.end();
     });
+
     it('should properly close multiple connections from multiple pools with Promise.all() - 2', async () => {
       const pool1 = new Pool({
         connectionString,
@@ -973,6 +1001,7 @@ describe('postgres-pool', () => {
       rowsAfterEnd.should.deep.equal([]);
       await validatorPool.end();
     });
+
     it('should close all connections in a pool when running more queries than available connections', async () => {
       const validatorPool = new Pool({
         connectionString,
