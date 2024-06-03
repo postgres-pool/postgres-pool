@@ -5,6 +5,10 @@
 - Publish as CJS and ESM
 - Update npms
 
+### BREAKING CHANGES
+
+- `ErrorWithCode` renamed to `PostgresPoolError`
+
 ## 8.1.6 - 2024-05-13
 
 - Update npms

@@ -9,7 +9,7 @@ import { Client } from 'pg';
 import type { StrictEventEmitter } from 'strict-event-emitter-types';
 import { v4 } from 'uuid';
 
-import { ErrorWithCode } from './ErrorWithCode.js';
+import { PostgresPoolError } from './PostgresPoolError';
 
 export interface SslSettings {
   /**
@@ -271,7 +271,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
       reconnectOnConnectionError: true,
       waitForReconnectConnectionMillis: 0,
       connectionReconnectTimeoutMillis: 90000,
-      namedParameterFindRegExp: /@([\w])+\b/g,
+      namedParameterFindRegExp: /@(\w)+\b/g,
       getNamedParameterReplaceRegExp(namedParameter: string): RegExp {
         // eslint-disable-next-line security/detect-non-literal-regexp
         return new RegExp(`@${namedParameter}\\b`, 'gm');
@@ -305,7 +305,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
    */
   public async connect(): Promise<PoolClient> {
     if (this.isEnding) {
-      throw new ErrorWithCode('Cannot use pool after calling end() on the pool', 'ERR_PG_CONNECT_POOL_ENDED');
+      throw new PostgresPoolError('Cannot use pool after calling end() on the pool', 'ERR_PG_CONNECT_POOL_ENDED');
     }
 
     const idleConnection = this.idleConnections.shift();
@@ -366,7 +366,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
           this.connectionQueue.splice(index, 1);
         }
 
-        throw new ErrorWithCode('Timed out while waiting for available connection in pool', 'ERR_PG_CONNECT_POOL_CONNECTION_TIMEOUT');
+        throw new PostgresPoolError('Timed out while waiting for available connection in pool', 'ERR_PG_CONNECT_POOL_CONNECTION_TIMEOUT');
       })(),
     ])) as PoolClient;
   }
@@ -403,7 +403,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
 
     const tokenMatches = text.match(this.options.namedParameterFindRegExp);
     if (!tokenMatches) {
-      throw new ErrorWithCode('Did not find named parameters in in the query. Expected named parameter form is @foo', 'ERR_PG_QUERY_NO_NAMED_PARAMETERS');
+      throw new PostgresPoolError('Did not find named parameters in in the query. Expected named parameter form is @foo', 'ERR_PG_QUERY_NO_NAMED_PARAMETERS');
     }
 
     // Get unique token names
@@ -418,7 +418,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
     }
 
     if (missingParameters.length) {
-      throw new ErrorWithCode(`Missing query parameter(s): ${missingParameters.join(', ')}`, 'ERR_PG_QUERY_MISSING_QUERY_PARAMETER');
+      throw new PostgresPoolError(`Missing query parameter(s): ${missingParameters.join(', ')}`, 'ERR_PG_QUERY_MISSING_QUERY_PARAMETER');
     }
 
     let sql = text.slice();
@@ -580,7 +580,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
         })(),
         (async function connectTimeout(): Promise<void> {
           connectionTimeoutTimer = await setTimeoutPromise(connectionTimeoutMillis);
-          throw new ErrorWithCode('Timed out trying to connect to postgres', 'ERR_PG_CONNECT_TIMEOUT');
+          throw new PostgresPoolError('Timed out trying to connect to postgres', 'ERR_PG_CONNECT_TIMEOUT');
         })(),
       ]);
 
@@ -598,7 +598,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
 
       await client.end();
 
-      const { message, code } = ex as ErrorWithCode;
+      const { message, code } = ex as PostgresPoolError;
       let retryConnection = false;
       if (this.options.retryConnectionMaxRetries) {
         if (code) {
