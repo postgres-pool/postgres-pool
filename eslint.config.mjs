@@ -4,6 +4,7 @@ import mocha from 'eslint-plugin-mocha';
 import prettier from 'eslint-plugin-prettier/recommended';
 import promise from 'eslint-plugin-promise';
 import security from 'eslint-plugin-security';
+import unicorn from 'eslint-plugin-unicorn';
 import globals from 'globals';
 import tsEslint from 'typescript-eslint';
 
@@ -31,6 +32,7 @@ export default tsEslint.config(
       jsdoc,
       promise,
       security,
+      unicorn,
     },
     settings: {
       jsdoc: {
@@ -289,6 +291,14 @@ export default tsEslint.config(
       'security/detect-possible-timing-attacks': 'error',
       'security/detect-pseudoRandomBytes': 'error',
       'security/detect-unsafe-regex': 'error',
+
+      'unicorn/better-regex': 'error',
+      'unicorn/custom-error-definition': 'error',
+      'unicorn/no-array-method-this-argument': 'error',
+      'unicorn/no-for-loop': 'error',
+      'unicorn/prefer-array-find': 'error',
+      'unicorn/prefer-object-from-entries': 'error',
+      'unicorn/prefer-set-has': 'error',
     },
   },
   {
