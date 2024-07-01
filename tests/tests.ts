@@ -2,14 +2,14 @@ import assert from 'assert';
 import { setTimeout } from 'timers/promises';
 
 import { faker } from '@faker-js/faker';
-import chai from 'chai';
+import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import type { PoolClient } from 'pg';
-import { Client } from 'pg';
+import pg from 'pg';
 import * as sinon from 'sinon';
 
-import type { PoolClientWithConnection } from '../src';
-import { Pool } from '../src';
+import type { PoolClientWithConnection } from '../src/index.js';
+import { Pool } from '../src/index.js';
 
 describe('postgres-pool', () => {
   let should: Chai.Should;
@@ -21,7 +21,7 @@ describe('postgres-pool', () => {
 
   describe('#constructor()', () => {
     it('should pass connectionString to client', async () => {
-      const stub = sinon.stub(Client.prototype, 'connect');
+      const stub = sinon.stub(pg.Client.prototype, 'connect');
 
       const connectionString = 'postgres://foo:bar@baz:1234/xur';
       const pool = new Pool({
@@ -36,8 +36,8 @@ describe('postgres-pool', () => {
 
   describe('#connect()', () => {
     it('should throw if connecting exceeds connectionTimeoutMillis', async () => {
-      const connectStub = sinon.stub(Client.prototype, 'connect').resolves(setTimeout(10000));
-      const endStub = sinon.stub(Client.prototype, 'end');
+      const connectStub = sinon.stub(pg.Client.prototype, 'connect').resolves(setTimeout(10000));
+      const endStub = sinon.stub(pg.Client.prototype, 'end');
 
       const pool = new Pool({
         connectionString: 'postgres://foo:bar@baz:1234/xur',
@@ -57,8 +57,8 @@ describe('postgres-pool', () => {
     });
 
     it('should call end() if timeout during connecting', async () => {
-      const connectStub = sinon.stub(Client.prototype, 'connect').resolves(setTimeout(10000));
-      const endStub = sinon.stub(Client.prototype, 'end');
+      const connectStub = sinon.stub(pg.Client.prototype, 'connect').resolves(setTimeout(10000));
+      const endStub = sinon.stub(pg.Client.prototype, 'end');
 
       const pool = new Pool({
         connectionString: 'postgres://foo:bar@baz:1234/xur',
@@ -80,8 +80,8 @@ describe('postgres-pool', () => {
     });
 
     it('should not consume a pool connection when connecting times out - timeout expired', async () => {
-      const connectStub = sinon.stub(Client.prototype, 'connect').throws(new Error('timeout expired'));
-      const endStub = sinon.stub(Client.prototype, 'end');
+      const connectStub = sinon.stub(pg.Client.prototype, 'connect').throws(new Error('timeout expired'));
+      const endStub = sinon.stub(pg.Client.prototype, 'end');
 
       const pool = new Pool({
         connectionString: 'postgres://foo:bar@baz:1234/xur',
@@ -105,8 +105,8 @@ describe('postgres-pool', () => {
     });
 
     it('should not consume a pool connection when connecting times out - ERR_PG_CONNECT_TIMEOUT', async () => {
-      const connectStub = sinon.stub(Client.prototype, 'connect').resolves(setTimeout(10000));
-      const endStub = sinon.stub(Client.prototype, 'end');
+      const connectStub = sinon.stub(pg.Client.prototype, 'connect').resolves(setTimeout(10000));
+      const endStub = sinon.stub(pg.Client.prototype, 'end');
 
       const pool = new Pool({
         connectionString: 'postgres://foo:bar@baz:1234/xur',
@@ -132,8 +132,8 @@ describe('postgres-pool', () => {
     it('should emit "connectionAddedToPool" after successful connection', async () => {
       const startTime = process.hrtime.bigint();
       let connectionStartTime;
-      const connectStub = sinon.stub(Client.prototype, 'connect').resolves(setTimeout(1));
-      const endStub = sinon.stub(Client.prototype, 'end');
+      const connectStub = sinon.stub(pg.Client.prototype, 'connect').resolves(setTimeout(1));
+      const endStub = sinon.stub(pg.Client.prototype, 'end');
 
       const pool = new Pool({
         connectionString: 'postgres://foo:bar@baz:1234/xur',
@@ -153,8 +153,8 @@ describe('postgres-pool', () => {
 
     it('should not emit "connectionAddedToPool" if connection fails', async () => {
       const connectionAddedToPoolCalled = false;
-      const connectStub = sinon.stub(Client.prototype, 'connect').resolves(setTimeout(10000));
-      const endStub = sinon.stub(Client.prototype, 'end');
+      const connectStub = sinon.stub(pg.Client.prototype, 'connect').resolves(setTimeout(10000));
+      const endStub = sinon.stub(pg.Client.prototype, 'end');
 
       const pool = new Pool({
         connectionString: 'postgres://foo:bar@baz:1234/xur',
@@ -175,10 +175,10 @@ describe('postgres-pool', () => {
     });
 
     it('should retry connection if client throws "timeout expired" on first attempt', async () => {
-      const connectStub = sinon.stub(Client.prototype, 'connect');
+      const connectStub = sinon.stub(pg.Client.prototype, 'connect');
       connectStub.onCall(0).throws(new Error('timeout expired'));
       connectStub.resolves();
-      const endStub = sinon.stub(Client.prototype, 'end');
+      const endStub = sinon.stub(pg.Client.prototype, 'end');
 
       const pool = new Pool({
         connectionString: 'postgres://foo:bar@baz:1234/xur',
@@ -198,11 +198,11 @@ describe('postgres-pool', () => {
     });
 
     it('should retry connection if ERR_PG_CONNECT_TIMEOUT is thrown on first attempt', async () => {
-      const connectStub = sinon.stub(Client.prototype, 'connect');
+      const connectStub = sinon.stub(pg.Client.prototype, 'connect');
       connectStub.onCall(0).resolves(setTimeout(10000));
       connectStub.resolves();
 
-      const endStub = sinon.stub(Client.prototype, 'end');
+      const endStub = sinon.stub(pg.Client.prototype, 'end');
 
       const pool = new Pool({
         connectionString: 'postgres://foo:bar@baz:1234/xur',
@@ -226,7 +226,7 @@ describe('postgres-pool', () => {
           connectionString: 'postgres://foo:bar@baz:1234/xur',
           reconnectOnDatabaseIsStartingError: false,
         });
-        const connectStub = sinon.stub(Client.prototype, 'connect').throws(new Error('the database system is starting up'));
+        const connectStub = sinon.stub(pg.Client.prototype, 'connect').throws(new Error('the database system is starting up'));
 
         try {
           await pool.query('foo');
@@ -245,7 +245,7 @@ describe('postgres-pool', () => {
           connectionString: 'postgres://foo:bar@baz:1234/xur',
           reconnectOnDatabaseIsStartingError: true,
         });
-        const connectStub = sinon.stub(Client.prototype, 'connect').throws(new Error('Some other error'));
+        const connectStub = sinon.stub(pg.Client.prototype, 'connect').throws(new Error('Some other error'));
 
         try {
           await pool.query('foo');
@@ -269,9 +269,9 @@ describe('postgres-pool', () => {
           rows: [42],
           rowCount: 1,
         };
-        const connectStub = sinon.stub(Client.prototype, 'connect');
-        const queryStub = sinon.stub(Client.prototype, 'query').resolves(returnResult);
-        const endStub = sinon.stub(Client.prototype, 'end').resolves();
+        const connectStub = sinon.stub(pg.Client.prototype, 'connect');
+        const queryStub = sinon.stub(pg.Client.prototype, 'query').resolves(returnResult);
+        const endStub = sinon.stub(pg.Client.prototype, 'end').resolves();
 
         const result = await pool.query('foo');
         result.should.deep.equal(returnResult);
@@ -296,11 +296,11 @@ describe('postgres-pool', () => {
           rows: [42],
           rowCount: 1,
         };
-        const connectStub = sinon.stub(Client.prototype, 'connect');
+        const connectStub = sinon.stub(pg.Client.prototype, 'connect');
         connectStub.onCall(0).throws(new Error('the database system is starting up'));
         connectStub.onCall(1).resolves();
-        const queryStub = sinon.stub(Client.prototype, 'query').resolves(returnResult);
-        const endStub = sinon.stub(Client.prototype, 'end').resolves();
+        const queryStub = sinon.stub(pg.Client.prototype, 'query').resolves(returnResult);
+        const endStub = sinon.stub(pg.Client.prototype, 'end').resolves();
 
         const result = await pool.query('foo');
         result.should.deep.equal(returnResult);
@@ -325,11 +325,11 @@ describe('postgres-pool', () => {
           rows: [42],
           rowCount: 1,
         };
-        const connectStub = sinon.stub(Client.prototype, 'connect');
+        const connectStub = sinon.stub(pg.Client.prototype, 'connect');
         connectStub.onCall(0).throws(new Error('the database system is starting up'));
         connectStub.onCall(1).resolves();
-        const queryStub = sinon.stub(Client.prototype, 'query').resolves(returnResult);
-        const endStub = sinon.stub(Client.prototype, 'end').resolves();
+        const queryStub = sinon.stub(pg.Client.prototype, 'query').resolves(returnResult);
+        const endStub = sinon.stub(pg.Client.prototype, 'end').resolves();
 
         const result = await pool.query('foo');
         result.should.deep.equal(returnResult);

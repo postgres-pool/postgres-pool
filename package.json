@@ -25,7 +25,7 @@
   ],
   "scripts": {
     "build": "unbuild",
-    "test": "npm run test:types && mocha tests/tests.ts",
+    "test": "npm run test:types && mocha --loader=ts-node/esm tests/tests.ts",
     "test:types": "tsc --noEmit --skipLibCheck",
     "lint:markdown": "prettier --cache --write '*.md' '!(node_modules|dist)/**/*.md' && markdownlint '*.md' '!(node_modules|dist)/**/*.md' --config=.github/linters/.markdown-lint.yml --fix",
     "lint:code": "eslint --fix",
@@ -77,34 +77,35 @@
   },
   "dependencies": {
     "@types/pg": "^8.11.6",
-    "@types/uuid": "^9.0.8",
-    "pg": "^8.11.5",
+    "@types/uuid": "^10.0.0",
+    "pg": "^8.12.0",
     "strict-event-emitter-types": "^2.0.0",
-    "uuid": "^9.0.1"
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
     "@faker-js/faker": "^8.4.1",
-    "@swc/core": "1.5.24",
+    "@swc/core": "1.6.6",
     "@types/chai": "^4.3.16",
     "@types/chai-as-promised": "^7.1.8",
-    "@types/mocha": "^10.0.6",
+    "@types/mocha": "^10.0.7",
     "@types/node": ">=20",
     "@types/sinon": "^17.0.3",
     "chai": "^5.1.1",
-    "chai-as-promised": "^7.1.2",
-    "eslint": "^9.4.0",
-    "eslint-config-decent": "^1.0.0",
+    "chai-as-promised": "^8.0.0",
+    "eslint": "^9.6.0",
+    "eslint-config-decent": "^1.2.2",
     "husky": "^9.0.11",
-    "lint-staged": "^15.2.5",
+    "lint-staged": "^15.2.7",
     "markdownlint-cli": "^0.41.0",
-    "mocha": "^10.4.0",
+    "mocha": "^10.5.2",
     "npm-run-all": "^4.1.5",
     "pinst": "^3.0.0",
-    "prettier": "^3.3.0",
+    "prettier": "^3.3.2",
     "rimraf": "^5.0.7",
     "sinon": "^18.0.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.4.5",
-    "typescript-eslint": "^8.0.0-alpha.24"
+    "typescript": "^5.5.3",
+    "typescript-eslint": "^8.0.0-alpha.39",
+    "unbuild": "^2.0.0"
   }
 }

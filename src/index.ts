@@ -5,11 +5,11 @@ import { setTimeout as setTimeoutPromise } from 'timers/promises';
 import type { ConnectionOptions } from 'tls';
 
 import type { Connection, QueryResult, QueryResultRow } from 'pg';
-import { Client } from 'pg';
+import pg from 'pg';
 import type { StrictEventEmitter } from 'strict-event-emitter-types';
 import { v4 } from 'uuid';
 
-import { PostgresPoolError } from './PostgresPoolError';
+import { PostgresPoolError } from './PostgresPoolError.js';
 
 export interface SslSettings {
   /**
@@ -91,7 +91,7 @@ export interface PoolOptionsBase {
   readOnlyTransactionReconnectTimeoutMillis: number;
   /**
    * If the query should be retried when the database throws "Client has encountered a connection error and is not queryable"
-   * NOTE: This typically happens during a fail over scenario with the cluster
+   * NOTE: This typically happens during a fail-over scenario with the cluster
    */
   reconnectOnConnectionError: boolean;
   /**
@@ -181,7 +181,7 @@ export interface PoolOptionsImplicit {
   statement_timeout?: number;
 }
 
-export type PoolClient = Client & {
+export type PoolClient = pg.Client & {
   uniqueId: string;
   idleTimeoutTimer?: NodeJS.Timeout;
   release: (removeConnection?: boolean) => Promise<void>;
@@ -527,7 +527,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
     createConnectionStartTime: bigint = process.hrtime.bigint(),
     databaseStartupStartTime?: [number, number],
   ): Promise<PoolClient> {
-    const client = new Client(this.options) as PoolClient;
+    const client = new pg.Client(this.options) as PoolClient;
     client.uniqueId = connectionId;
     /**
      * Releases the client connection back to the pool, to be used by another query.
