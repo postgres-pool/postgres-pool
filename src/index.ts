@@ -5,12 +5,13 @@ import { setTimeout as setTimeoutPromise } from 'timers/promises';
 import type { ConnectionOptions } from 'tls';
 
 import type { Connection, QueryResult, QueryResultRow } from 'pg';
-import { Client } from 'pg';
+import pg from 'pg';
 import type { StrictEventEmitter } from 'strict-event-emitter-types';
 import { v4 } from 'uuid';
 
-import { ErrorWithCode } from './ErrorWithCode';
+import { PostgresPoolError } from './PostgresPoolError.js';
 
+export { PostgresPoolError };
 export interface SslSettings {
   /**
    * TLS options for the underlying socket connection.
@@ -91,7 +92,7 @@ export interface PoolOptionsBase {
   readOnlyTransactionReconnectTimeoutMillis: number;
   /**
    * If the query should be retried when the database throws "Client has encountered a connection error and is not queryable"
-   * NOTE: This typically happens during a fail over scenario with the cluster
+   * NOTE: This typically happens during a fail-over scenario with the cluster
    */
   reconnectOnConnectionError: boolean;
   /**
@@ -120,12 +121,10 @@ export interface PoolOptionsBase {
   /**
    * Throw an error if a query takes longer than the specified milliseconds
    */
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   query_timeout?: number;
   /**
    * Abort a query statement if it takes longer than the specified milliseconds
    */
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   statement_timeout?: number;
 }
 
@@ -154,9 +153,7 @@ export interface PoolOptionsExplicit {
   namedParameterFindRegExp?: RegExp;
   getNamedParameterReplaceRegExp?: (namedParameter: string) => RegExp;
   getNamedParameterName?: (namedParameterWithSymbols: string) => string;
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   query_timeout?: number;
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   statement_timeout?: number;
 }
 
@@ -181,13 +178,11 @@ export interface PoolOptionsImplicit {
   namedParameterFindRegExp?: RegExp;
   getNamedParameterReplaceRegExp?: (namedParameter: string) => RegExp;
   getNamedParameterName?: (namedParameterWithSymbols: string) => string;
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   query_timeout?: number;
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   statement_timeout?: number;
 }
 
-export type PoolClient = Client & {
+export type PoolClient = pg.Client & {
   uniqueId: string;
   idleTimeoutTimer?: NodeJS.Timeout;
   release: (removeConnection?: boolean) => Promise<void>;
@@ -258,7 +253,6 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
   protected isEnding = false;
 
   public constructor(options: SslSettingsOrAwsRdsSsl & (PoolOptionsExplicit | PoolOptionsImplicit)) {
-    // eslint-disable-next-line constructor-super
     super();
 
     const defaultOptions: PoolOptionsBase = {
@@ -278,7 +272,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
       reconnectOnConnectionError: true,
       waitForReconnectConnectionMillis: 0,
       connectionReconnectTimeoutMillis: 90000,
-      namedParameterFindRegExp: /@([\w])+\b/g,
+      namedParameterFindRegExp: /@(\w)+\b/g,
       getNamedParameterReplaceRegExp(namedParameter: string): RegExp {
         // eslint-disable-next-line security/detect-non-literal-regexp
         return new RegExp(`@${namedParameter}\\b`, 'gm');
@@ -296,7 +290,6 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
     if (ssl === 'aws-rds') {
       this.options.ssl = {
         rejectUnauthorized: true,
-        // eslint-disable-next-line security/detect-non-literal-fs-filename
         ca: fs.readFileSync(path.join(__dirname, './certs/rds-global-bundle.pem')),
         minVersion: 'TLSv1.2',
       };
@@ -313,7 +306,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
    */
   public async connect(): Promise<PoolClient> {
     if (this.isEnding) {
-      throw new ErrorWithCode('Cannot use pool after calling end() on the pool', 'ERR_PG_CONNECT_POOL_ENDED');
+      throw new PostgresPoolError('Cannot use pool after calling end() on the pool', 'ERR_PG_CONNECT_POOL_ENDED');
     }
 
     const idleConnection = this.idleConnections.shift();
@@ -374,7 +367,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
           this.connectionQueue.splice(index, 1);
         }
 
-        throw new ErrorWithCode('Timed out while waiting for available connection in pool', 'ERR_PG_CONNECT_POOL_CONNECTION_TIMEOUT');
+        throw new PostgresPoolError('Timed out while waiting for available connection in pool', 'ERR_PG_CONNECT_POOL_CONNECTION_TIMEOUT');
       })(),
     ])) as PoolClient;
   }
@@ -409,10 +402,9 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
       return this._query(text);
     }
 
-    // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
     const tokenMatches = text.match(this.options.namedParameterFindRegExp);
     if (!tokenMatches) {
-      throw new ErrorWithCode('Did not find named parameters in in the query. Expected named parameter form is @foo', 'ERR_PG_QUERY_NO_NAMED_PARAMETERS');
+      throw new PostgresPoolError('Did not find named parameters in in the query. Expected named parameter form is @foo', 'ERR_PG_QUERY_NO_NAMED_PARAMETERS');
     }
 
     // Get unique token names
@@ -427,7 +419,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
     }
 
     if (missingParameters.length) {
-      throw new ErrorWithCode(`Missing query parameter(s): ${missingParameters.join(', ')}`, 'ERR_PG_QUERY_MISSING_QUERY_PARAMETER');
+      throw new PostgresPoolError(`Missing query parameter(s): ${missingParameters.join(', ')}`, 'ERR_PG_QUERY_MISSING_QUERY_PARAMETER');
     }
 
     let sql = text.slice();
@@ -497,7 +489,6 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
     await this.drainIdleConnections();
 
     if (!reconnectQueryStartTime) {
-      // eslint-disable-next-line no-param-reassign
       reconnectQueryStartTime = process.hrtime();
     }
 
@@ -537,7 +528,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
     createConnectionStartTime: bigint = process.hrtime.bigint(),
     databaseStartupStartTime?: [number, number],
   ): Promise<PoolClient> {
-    const client = new Client(this.options) as PoolClient;
+    const client = new pg.Client(this.options) as PoolClient;
     client.uniqueId = connectionId;
     /**
      * Releases the client connection back to the pool, to be used by another query.
@@ -557,7 +548,6 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
         this.connectionQueueEventEmitter.emit(`connection_${id}`, client);
       } else if (this.options.idleTimeoutMillis > 0) {
         client.idleTimeoutTimer = setTimeout((): void => {
-          // eslint-disable-next-line no-void
           void this._removeConnection(client);
         }, this.options.idleTimeoutMillis);
 
@@ -570,7 +560,6 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
 
     client.errorHandler = (err: Error): void => {
       // fire and forget, we will always emit the error.
-      // eslint-disable-next-line no-void
       void this._removeConnection(client).finally(() => this.emit('error', err, client));
     };
 
@@ -592,7 +581,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
         })(),
         (async function connectTimeout(): Promise<void> {
           connectionTimeoutTimer = await setTimeoutPromise(connectionTimeoutMillis);
-          throw new ErrorWithCode('Timed out trying to connect to postgres', 'ERR_PG_CONNECT_TIMEOUT');
+          throw new PostgresPoolError('Timed out trying to connect to postgres', 'ERR_PG_CONNECT_TIMEOUT');
         })(),
       ]);
 
@@ -610,7 +599,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
 
       await client.end();
 
-      const { message, code } = ex as ErrorWithCode;
+      const { message, code } = ex as PostgresPoolError;
       let retryConnection = false;
       if (this.options.retryConnectionMaxRetries) {
         if (code) {
@@ -640,7 +629,6 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
         this.emit('waitingForDatabaseToStart');
 
         if (!databaseStartupStartTime) {
-          // eslint-disable-next-line no-param-reassign
           databaseStartupStartTime = process.hrtime();
         }
 
