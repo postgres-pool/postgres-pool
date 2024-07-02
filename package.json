@@ -1,6 +1,6 @@
 {
   "name": "postgres-pool",
-  "version": "9.0.0",
+  "version": "9.0.1",
   "description": "Node postgres connection pool implementation for node-pg",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
@@ -24,7 +24,7 @@
     "src"
   ],
   "scripts": {
-    "build": "unbuild",
+    "build": "unbuild && cp -R certs dist",
     "test": "npm run test:types && mocha --loader=ts-node/esm tests/tests.ts",
     "test:types": "tsc --noEmit --skipLibCheck",
     "lint:markdown": "prettier --cache --write '*.md' '!(node_modules|dist)/**/*.md' && markdownlint '*.md' '!(node_modules|dist)/**/*.md' --config=.github/linters/.markdown-lint.yml --fix",

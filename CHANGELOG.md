@@ -1,5 +1,9 @@
 # Change Log
 
+## 9.0.1 - 2024-07-02
+
+- Include certs in npm package
+
 ## 9.0.0 - 2024-07-02
 
 - Publish as CJS and ESM
