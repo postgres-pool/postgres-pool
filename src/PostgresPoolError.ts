@@ -6,5 +6,7 @@ export class PostgresPoolError extends Error {
 
     this.name = 'PostgresPoolError';
     this.code = code;
+
+    Object.setPrototypeOf(this, PostgresPoolError.prototype);
   }
 }
