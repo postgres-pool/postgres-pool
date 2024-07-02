@@ -11,6 +11,7 @@ import { v4 } from 'uuid';
 
 import { PostgresPoolError } from './PostgresPoolError.js';
 
+export { PostgresPoolError };
 export interface SslSettings {
   /**
    * TLS options for the underlying socket connection.
