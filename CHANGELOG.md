@@ -1,6 +1,6 @@
 # Change Log
 
-## 9.0.0 - 2024-05-31
+## 9.0.0 - 2024-07-02
 
 - Publish as CJS and ESM
 - Update npms
