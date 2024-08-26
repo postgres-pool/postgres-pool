@@ -1,5 +1,9 @@
 # Change Log
 
+## 9.0.2 - 2024-08-26
+
+- Update npms
+
 ## 9.0.1 - 2024-07-02
 
 - Include certs in npm package

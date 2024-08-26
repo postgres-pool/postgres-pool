@@ -350,7 +350,7 @@ describe('postgres-pool', () => {
       const pool = new Pool({
         connectionString: 'postgres://foo:bar@baz:1234/xur',
       });
-      const expectedResult = faker.datatype.uuid();
+      const expectedResult = faker.string.uuid();
       const connection = {
         query(): void {},
         release(): void {},
@@ -408,9 +408,9 @@ describe('postgres-pool', () => {
       // @ts-expect-error - Connections is protected
       pool.connections.length.should.equal(0);
 
-      const expectedResult = faker.datatype.uuid();
+      const expectedResult = faker.string.uuid();
       const connection = {
-        uniqueId: faker.datatype.uuid(),
+        uniqueId: faker.string.uuid(),
         query(): void {},
         release(): void {},
       };
@@ -595,7 +595,7 @@ describe('postgres-pool', () => {
         const pool = new Pool({
           connectionString: 'postgres://foo:bar@baz:1234/xur',
         });
-        const expectedResult = faker.datatype.uuid();
+        const expectedResult = faker.string.uuid();
         const connection = {
           query(_queryText: string, _args: string[]): void {},
           release(): void {},
@@ -626,7 +626,7 @@ describe('postgres-pool', () => {
         const pool = new Pool({
           connectionString: 'postgres://foo:bar@baz:1234/xur',
         });
-        const expectedResult = faker.datatype.uuid();
+        const expectedResult = faker.string.uuid();
         const connection = {
           query(): void {},
           release(): void {},
@@ -657,7 +657,7 @@ describe('postgres-pool', () => {
         const pool = new Pool({
           connectionString: 'postgres://foo:bar@baz:1234/xur',
         });
-        const expectedResult = faker.datatype.uuid();
+        const expectedResult = faker.string.uuid();
         const connection = {
           query(_queryText: string, _args: string[]): void {},
           release(): void {},
@@ -691,7 +691,7 @@ describe('postgres-pool', () => {
         const pool = new Pool({
           connectionString: 'postgres://foo:bar@baz:1234/xur',
         });
-        const expectedResult = faker.datatype.uuid();
+        const expectedResult = faker.string.uuid();
         const connection = {
           query(_queryText: string, _args: string[]): void {},
           release(): void {},
@@ -717,7 +717,7 @@ describe('postgres-pool', () => {
         const pool = new Pool({
           connectionString: 'postgres://foo:bar@baz:1234/xur',
         });
-        const expectedResult = faker.datatype.uuid();
+        const expectedResult = faker.string.uuid();
         const connection = {
           query(_queryText: string, _args: string[]): void {},
           release(): void {},

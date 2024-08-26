@@ -1,4 +1,5 @@
-import { defaultConfig } from 'eslint-config-decent';
-import tsEslint from 'typescript-eslint';
+import { config } from 'eslint-config-decent';
 
-export default tsEslint.config(...defaultConfig());
+export default config({
+  tsconfigRootDir: import.meta.dirname,
+});
