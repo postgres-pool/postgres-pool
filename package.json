@@ -31,6 +31,8 @@
     "lint:code": "eslint --fix",
     "lint": "run-p lint:*",
     "lint-staged": "lint-staged",
+    "docker:up": "docker-compose -f .devcontainer/docker-compose.yml up -d",
+    "docker:down": "docker-compose -f .devcontainer/docker-compose.yml down",
     "beta": "npm publish --tag beta",
     "prepublishOnly": "npm run lint && npm run test && npm run build && pinst --disable",
     "postpublish": "pinst --enable",
