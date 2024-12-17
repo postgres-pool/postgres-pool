@@ -1,5 +1,5 @@
-import assert from 'assert';
-import { setTimeout } from 'timers/promises';
+import assert from 'node:assert';
+import { setTimeout } from 'node:timers/promises';
 
 import { faker } from '@faker-js/faker';
 import * as chai from 'chai';

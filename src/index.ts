@@ -1,8 +1,8 @@
-import { EventEmitter } from 'events';
-import * as fs from 'fs';
-import * as path from 'path';
-import { setTimeout as setTimeoutPromise } from 'timers/promises';
-import type { ConnectionOptions } from 'tls';
+import { EventEmitter } from 'node:events';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { setTimeout as setTimeoutPromise } from 'node:timers/promises';
+import type { ConnectionOptions } from 'node:tls';
 
 import type { Connection, QueryResult, QueryResultRow } from 'pg';
 import pg from 'pg';

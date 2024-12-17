@@ -1,5 +1,10 @@
 # Change Log
 
+## 9.0.5 - 2024-12-17
+
+- Update npms
+- Use node protocol for built-in modules
+
 ## 9.0.4 - 2024-11-29
 
 - Update npms
