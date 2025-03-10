@@ -3,6 +3,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { setTimeout as setTimeoutPromise } from 'node:timers/promises';
 import type { ConnectionOptions } from 'node:tls';
+import { fileURLToPath } from 'node:url';
 
 import type { Connection, QueryResult, QueryResultRow } from 'pg';
 import pg from 'pg';
@@ -10,8 +11,11 @@ import type { StrictEventEmitter } from 'strict-event-emitter-types';
 import { v4 } from 'uuid';
 
 import { PostgresPoolError } from './PostgresPoolError.js';
-
 export { PostgresPoolError };
+
+const pathToThisFile = fileURLToPath(import.meta.url);
+const currentFileDirectory = path.dirname(pathToThisFile);
+
 export interface SslSettings {
   /**
    * TLS options for the underlying socket connection.
@@ -290,7 +294,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
     if (ssl === 'aws-rds') {
       this.options.ssl = {
         rejectUnauthorized: true,
-        ca: fs.readFileSync(path.join(__dirname, './certs/rds-global-bundle.pem')),
+        ca: fs.readFileSync(path.join(currentFileDirectory, 'certs/rds-global-bundle.pem')),
         minVersion: 'TLSv1.2',
       };
     } else {
