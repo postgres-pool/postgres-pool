@@ -1,5 +1,10 @@
 # Change Log
 
+## 10.0.0 - 2024-03-10
+
+- Drop support for Node.js 18
+- Update npms
+
 ## 9.0.6 - 2024-01-08
 
 - Update npms

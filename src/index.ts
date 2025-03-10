@@ -219,6 +219,7 @@ type PoolEmitter = StrictEventEmitter<EventEmitter, PoolEvents>;
 export class Pool extends (EventEmitter as new () => PoolEmitter) {
   /**
    * Gets the number of queued requests waiting for a database connection
+   * @returns Number of queued requests
    */
   public get waitingCount(): number {
     return this.connectionQueue.length;
@@ -226,6 +227,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
 
   /**
    * Gets the number of idle connections
+   * @returns Number of idle connections
    */
   public get idleCount(): number {
     return this.idleConnections.length;
@@ -233,6 +235,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
 
   /**
    * Gets the total number of connections in the pool
+   * @returns Total number of connections
    */
   public get totalCount(): number {
     return this.connections.length;
@@ -290,7 +293,8 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
     if (ssl === 'aws-rds') {
       this.options.ssl = {
         rejectUnauthorized: true,
-        ca: fs.readFileSync(path.join(__dirname, './certs/rds-global-bundle.pem')),
+        // eslint-disable-next-line security/detect-non-literal-fs-filename
+        ca: fs.readFileSync(path.join(import.meta.dirname, 'certs/rds-global-bundle.pem')),
         minVersion: 'TLSv1.2',
       };
     } else {
@@ -303,6 +307,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
   /**
    * Gets a client connection from the pool.
    * Note: You must call `.release()` when finished with the client connection object. That will release the connection back to the pool to be used by other requests.
+   * @returns Client connection
    */
   public async connect(): Promise<PoolClient> {
     if (this.isEnding) {
@@ -377,6 +382,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
    * Gets a connection to the database and executes the specified query using named parameters. This method will release the connection back to the pool when the query has finished.
    * @param {string} text
    * @param {object} values - Keys represent named parameters in the query
+   * @returns Results from query
    */
   public async query<TRow extends QueryResultRow = any>(text: string, values: Record<string, any>): Promise<QueryResult<TRow>>;
 
@@ -384,6 +390,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
    * Gets a connection to the database and executes the specified query. This method will release the connection back to the pool when the query has finished.
    * @param {string} text
    * @param {object[]} values
+   * @returns Results from query
    */
   public async query<TRow extends QueryResultRow = any>(text: string, values?: any[]): Promise<QueryResult<TRow>>;
 
@@ -391,6 +398,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
    * Gets a connection to the database and executes the specified query. This method will release the connection back to the pool when the query has finished.
    * @param {string} text
    * @param {object | object[]} values - If an object, keys represent named parameters in the query
+   * @returns Results from query
    */
   public query<TRow extends QueryResultRow = any>(text: string, values?: any[] | Record<string, any>): Promise<QueryResult<TRow>> {
     /* eslint-enable @typescript-eslint/no-explicit-any */
@@ -437,6 +445,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
 
   /**
    * Drains the pool of all active client connections and prevents additional connections
+   * @returns
    */
   public end(): Promise<void> {
     this.isEnding = true;
@@ -518,9 +527,10 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
   /**
    * Creates a new client connection to add to the pool
    * @param {string} connectionId
-   * @param {number} [retryAttempt=0]
+   * @param {number} [retryAttempt]
    * @param {bigint} [createConnectionStartTime] - High-resolution time (in nanoseconds) for when the connection was created
    * @param {[number,number]} [databaseStartupStartTime] - hrtime when the db was first listed as starting up
+   * @returns Client connection
    */
   private async _createConnection(
     connectionId: string,
@@ -532,8 +542,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
     client.uniqueId = connectionId;
     /**
      * Releases the client connection back to the pool, to be used by another query.
-     *
-     * @param {boolean} [removeConnection=false]
+     * @param {boolean} [removeConnection]
      */
     client.release = async (removeConnection = false): Promise<void> => {
       if (this.isEnding || removeConnection) {
