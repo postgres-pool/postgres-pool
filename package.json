@@ -75,7 +75,7 @@
   },
   "homepage": "https://github.com/postgres-pool/postgres-pool#readme",
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "dependencies": {
     "@types/pg": "^8.11.10",
