@@ -1,5 +1,9 @@
 # Change Log
 
+## 10.0.1 - 2024-03-11
+
+- Fix loading aws certs for ESM
+
 ## 10.0.0 - 2024-03-10
 
 - Drop support for Node.js 18
