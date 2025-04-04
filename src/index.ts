@@ -1,15 +1,13 @@
 import { EventEmitter } from 'node:events';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
 import { setTimeout as setTimeoutPromise } from 'node:timers/promises';
 import type { ConnectionOptions } from 'node:tls';
-import { fileURLToPath } from 'node:url';
 
 import type { Connection, QueryResult, QueryResultRow } from 'pg';
 import pg from 'pg';
 import type { StrictEventEmitter } from 'strict-event-emitter-types';
 import { v4 } from 'uuid';
 
+import { cert } from './certs/rds-global-bundle.js';
 import { PostgresPoolError } from './PostgresPoolError.js';
 
 export { PostgresPoolError };
@@ -217,9 +215,6 @@ interface PoolEvents {
 
 type PoolEmitter = StrictEventEmitter<EventEmitter, PoolEvents>;
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 export class Pool extends (EventEmitter as new () => PoolEmitter) {
   /**
    * Gets the number of queued requests waiting for a database connection
@@ -297,7 +292,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
     if (ssl === 'aws-rds') {
       this.options.ssl = {
         rejectUnauthorized: true,
-        ca: fs.readFileSync(path.join(__dirname, 'certs/rds-global-bundle.pem')),
+        ca: cert,
         minVersion: 'TLSv1.2',
       };
     } else {
