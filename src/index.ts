@@ -495,9 +495,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
     // Clear all idle connections and try the query again with a fresh connection
     await this.drainIdleConnections();
 
-    if (!reconnectQueryStartTime) {
-      reconnectQueryStartTime = process.hrtime();
-    }
+    reconnectQueryStartTime ??= process.hrtime();
 
     if (timeoutError && this.options.waitForReconnectReadOnlyTransactionMillis > 0) {
       await setTimeoutPromise(this.options.waitForReconnectReadOnlyTransactionMillis);
@@ -635,9 +633,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
       if (this.options.reconnectOnDatabaseIsStartingError && /the database system is starting up/giu.test(message)) {
         this.emit('waitingForDatabaseToStart');
 
-        if (!databaseStartupStartTime) {
-          databaseStartupStartTime = process.hrtime();
-        }
+        databaseStartupStartTime ??= process.hrtime();
 
         if (this.options.waitForDatabaseStartupMillis > 0) {
           await setTimeoutPromise(this.options.waitForDatabaseStartupMillis);
