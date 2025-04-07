@@ -15,5 +15,9 @@
       matchDepTypes: ['engines'],
       rangeStrategy: 'replace',
     },
+    {
+      matchPackageNames: ['@types/node'],
+      rangeStrategy: 'replace',
+    },
   ],
 }
