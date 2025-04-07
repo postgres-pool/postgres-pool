@@ -1,3 +1,14 @@
+# [10.1.0](https://github.com/postgres-pool/postgres-pool/compare/v10.0.1...v10.1.0) (2025-04-07)
+
+### Bug Fixes
+
+- **deps:** pin dependencies ([#75](https://github.com/postgres-pool/postgres-pool/issues/75)) ([47785ab](https://github.com/postgres-pool/postgres-pool/commit/47785abfe3f744444fdfaca55945233c4fe1efde))
+- Fix lint issues with nullish coalescing operator ([22bd45b](https://github.com/postgres-pool/postgres-pool/commit/22bd45b8db18073409abece31f54835d6fb51064))
+
+### Features
+
+- export cert and use over fs ([#74](https://github.com/postgres-pool/postgres-pool/issues/74)) ([b9847b3](https://github.com/postgres-pool/postgres-pool/commit/b9847b3449e7a2887ad73a0aefdaa79183608472))
+
 # 10.0.1 - 2024-03-11
 
 - Fix loading aws certs for ESM
