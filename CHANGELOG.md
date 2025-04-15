@@ -1,3 +1,11 @@
+## [10.1.1](https://github.com/postgres-pool/postgres-pool/compare/v10.1.0...v10.1.1) (2025-04-15)
+
+### Bug Fixes
+
+- **deps:** update all dependencies ([#81](https://github.com/postgres-pool/postgres-pool/issues/81)) ([a974ff6](https://github.com/postgres-pool/postgres-pool/commit/a974ff696878c6155eafd0390640892917a151d6))
+- **deps:** update dependency @types/pg to v8.11.13 ([#84](https://github.com/postgres-pool/postgres-pool/issues/84)) ([2d7dd11](https://github.com/postgres-pool/postgres-pool/commit/2d7dd11de502d76a162ccd72b47bac2e0b4a5d7d))
+- optional scope for semantic release ([#86](https://github.com/postgres-pool/postgres-pool/issues/86)) ([9fac2a1](https://github.com/postgres-pool/postgres-pool/commit/9fac2a1b00482346b7290d778119e17ee44016ca))
+
 # [10.1.0](https://github.com/postgres-pool/postgres-pool/compare/v10.0.1...v10.1.0) (2025-04-07)
 
 ### Bug Fixes
