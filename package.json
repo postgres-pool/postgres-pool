@@ -73,7 +73,7 @@
   },
   "dependencies": {
     "@types/pg": "8.11.13",
-    "pg": "8.14.1",
+    "pg": "8.15.1",
     "strict-event-emitter-types": "2.0.0",
     "uuid": "11.1.0"
   },
