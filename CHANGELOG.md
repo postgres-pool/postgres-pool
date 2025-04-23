@@ -1,3 +1,9 @@
+## [10.1.3](https://github.com/postgres-pool/postgres-pool/compare/v10.1.2...v10.1.3) (2025-04-23)
+
+### Bug Fixes
+
+- **deps:** update all dependencies ([#91](https://github.com/postgres-pool/postgres-pool/issues/91)) ([48bb3ce](https://github.com/postgres-pool/postgres-pool/commit/48bb3ce520b754c34877d3f267342b2b8e714a6a))
+
 ## [10.1.2](https://github.com/postgres-pool/postgres-pool/compare/v10.1.1...v10.1.2) (2025-04-22)
 
 ### Bug Fixes
