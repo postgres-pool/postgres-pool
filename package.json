@@ -72,7 +72,7 @@
     "node": ">=20.11.0"
   },
   "dependencies": {
-    "@types/pg": "8.11.13",
+    "@types/pg": "8.11.14",
     "pg": "8.15.5",
     "strict-event-emitter-types": "2.0.0",
     "uuid": "11.1.0"
