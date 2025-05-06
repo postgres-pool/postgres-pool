@@ -2,7 +2,7 @@ import { EventEmitter } from 'node:events';
 import { setTimeout as setTimeoutPromise } from 'node:timers/promises';
 import type { ConnectionOptions } from 'node:tls';
 
-import type { Connection, QueryResult, QueryResultRow } from 'pg';
+import type { QueryResult, QueryResultRow } from 'pg';
 import pg from 'pg';
 import type { StrictEventEmitter } from 'strict-event-emitter-types';
 import { v4 } from 'uuid';
@@ -186,10 +186,6 @@ export type PoolClient = pg.Client & {
   idleTimeoutTimer?: NodeJS.Timeout;
   release: (removeConnection?: boolean) => Promise<void>;
   errorHandler: (err: Error) => void;
-};
-
-export type PoolClientWithConnection = PoolClient & {
-  connection?: Connection;
 };
 
 export interface ConnectionAddedToPoolParams {
@@ -596,12 +592,8 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
         startTime: createConnectionStartTime,
       });
     } catch (ex) {
-      const { connection } = client as PoolClientWithConnection;
-      if (connection) {
-        // Force a disconnect of the socket, if it exists.
-        connection.stream.destroy();
-      }
-
+      // Force a disconnect of the socket, if it exists.
+      client.connection.stream.destroy();
       await client.end();
 
       const { message, code } = ex as PostgresPoolError;
