@@ -3,12 +3,14 @@ import { setTimeout } from 'node:timers/promises';
 
 import { faker } from '@faker-js/faker';
 import * as chai from 'chai';
+import 'chai/register-should.js';
+import { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import type { PoolClient } from 'pg';
 import pg from 'pg';
+import type { PoolClient as pgPoolClient } from 'pg';
 import * as sinon from 'sinon';
 
-import type { PoolClientWithConnection } from '../src/index.js';
+import type { PoolClient } from '../src/index.js';
 import { Pool } from '../src/index.js';
 
 describe('postgres-pool', () => {
@@ -354,8 +356,8 @@ describe('postgres-pool', () => {
       const connection = {
         query(): void {},
         release(): void {},
-      };
-      const connectStub = sinon.stub(pool, 'connect').resolves(connection as unknown as PoolClientWithConnection);
+      } as unknown as PoolClient;
+      const connectStub = sinon.stub(pool, 'connect').resolves(connection);
       const queryStub = sinon.stub(connection, 'query').resolves(expectedResult);
       const releaseStub = sinon.stub(connection, 'release').resolves();
 
@@ -378,8 +380,8 @@ describe('postgres-pool', () => {
       const connection = {
         query(): void {},
         release(): void {},
-      };
-      const connectStub = sinon.stub(pool, 'connect').resolves(connection as unknown as PoolClientWithConnection);
+      } as unknown as PoolClient;
+      const connectStub = sinon.stub(pool, 'connect').resolves(connection);
       const queryStub = sinon.stub(connection, 'query').throws();
       const releaseStub = sinon.stub(connection, 'release').resolves();
 
@@ -442,8 +444,8 @@ describe('postgres-pool', () => {
         const connection = {
           query(): void {},
           release(): void {},
-        };
-        const connectStub = sinon.stub(pool, 'connect').resolves(connection as unknown as PoolClientWithConnection);
+        } as unknown as PoolClient;
+        const connectStub = sinon.stub(pool, 'connect').resolves(connection);
         const queryStub = sinon.stub(connection, 'query').throws(new Error('cannot execute UPDATE in a read-only transaction'));
         const releaseStub = sinon.stub(connection, 'release').resolves();
 
@@ -470,8 +472,8 @@ describe('postgres-pool', () => {
         const connection = {
           query(): void {},
           release(): void {},
-        };
-        const connectStub = sinon.stub(pool, 'connect').resolves(connection as unknown as PoolClientWithConnection);
+        } as unknown as PoolClient;
+        const connectStub = sinon.stub(pool, 'connect').resolves(connection);
         const queryStub = sinon.stub(connection, 'query').throws(new Error('Some other error'));
         const releaseStub = sinon.stub(connection, 'release').resolves();
 
@@ -502,8 +504,8 @@ describe('postgres-pool', () => {
         const connection = {
           query(): void {},
           release(): void {},
-        };
-        const connectStub = sinon.stub(pool, 'connect').resolves(connection as unknown as PoolClientWithConnection);
+        } as unknown as PoolClient;
+        const connectStub = sinon.stub(pool, 'connect').resolves(connection);
         const queryStub = sinon.stub(connection, 'query').resolves(returnResult);
         const releaseStub = sinon.stub(connection, 'release').resolves();
 
@@ -532,8 +534,8 @@ describe('postgres-pool', () => {
         const connection = {
           query(): void {},
           release(): void {},
-        };
-        const connectStub = sinon.stub(pool, 'connect').resolves(connection as unknown as PoolClientWithConnection);
+        } as unknown as PoolClient;
+        const connectStub = sinon.stub(pool, 'connect').resolves(connection);
         const queryStub = sinon.stub(connection, 'query');
         queryStub.onCall(0).throws(new Error('cannot execute CREATE in a read-only transaction'));
         queryStub.onCall(1).resolves(returnResult);
@@ -564,8 +566,8 @@ describe('postgres-pool', () => {
         const connection = {
           query(): void {},
           release(): void {},
-        };
-        const connectStub = sinon.stub(pool, 'connect').resolves(connection as unknown as PoolClientWithConnection);
+        } as unknown as PoolClient;
+        const connectStub = sinon.stub(pool, 'connect').resolves(connection);
         const queryStub = sinon.stub(connection, 'query');
         queryStub.onCall(0).throws(new Error('cannot execute CREATE in a read-only transaction'));
         queryStub.onCall(1).resolves(returnResult);
@@ -599,8 +601,8 @@ describe('postgres-pool', () => {
         const connection = {
           query(_queryText: string, _args: string[]): void {},
           release(): void {},
-        };
-        const connectStub = sinon.stub(pool, 'connect').resolves(connection as unknown as PoolClientWithConnection);
+        } as unknown as PoolClient;
+        const connectStub = sinon.stub(pool, 'connect').resolves(connection);
         const queryStub = sinon.stub(connection, 'query').resolves(expectedResult);
         const releaseStub = sinon.stub(connection, 'release').resolves();
 
@@ -618,8 +620,10 @@ describe('postgres-pool', () => {
         queryStub.calledOnce.should.equal(true);
         releaseStub.calledOnce.should.equal(true);
 
-        queryStub.getCall(0).args[0].should.equal('select foo from foobar where id=$1 and (bar=$2 or bar=$3) and foo=$3');
-        queryStub.getCall(0).args[1].should.deep.equal(['lorem', 'lorem - foobar', 'lorem - foo']);
+        expect(queryStub.getCall(0).args).to.deep.equal([
+          'select foo from foobar where id=$1 and (bar=$2 or bar=$3) and foo=$3', //
+          ['lorem', 'lorem - foobar', 'lorem - foo'],
+        ]);
       });
 
       it('should throw if a named parameter is specified in the query string but not present in the query object', async () => {
@@ -630,8 +634,8 @@ describe('postgres-pool', () => {
         const connection = {
           query(): void {},
           release(): void {},
-        };
-        const connectStub = sinon.stub(pool, 'connect').resolves(connection as unknown as PoolClientWithConnection);
+        } as unknown as PoolClient;
+        const connectStub = sinon.stub(pool, 'connect').resolves(connection);
         const queryStub = sinon.stub(connection, 'query').resolves(expectedResult);
         const releaseStub = sinon.stub(connection, 'release').resolves();
 
@@ -661,8 +665,8 @@ describe('postgres-pool', () => {
         const connection = {
           query(_queryText: string, _args: string[]): void {},
           release(): void {},
-        };
-        const connectStub = sinon.stub(pool, 'connect').resolves(connection as unknown as PoolClientWithConnection);
+        } as unknown as PoolClient;
+        const connectStub = sinon.stub(pool, 'connect').resolves(connection);
         const queryStub = sinon.stub(connection, 'query').resolves(expectedResult);
         const releaseStub = sinon.stub(connection, 'release').resolves();
 
@@ -679,11 +683,13 @@ describe('postgres-pool', () => {
         queryStub.calledOnce.should.equal(true);
         releaseStub.calledOnce.should.equal(true);
 
-        queryStub.getCall(0).args[0].should.equal('select foo from foobar where foo=@foo');
-        queryStub.getCall(0).args[1].should.deep.equal([
-          {
-            foo: 'lorem - foo',
-          },
+        expect(queryStub.getCall(0).args).to.deep.equal([
+          'select foo from foobar where foo=@foo', //
+          [
+            {
+              foo: 'lorem - foo',
+            },
+          ],
         ]);
       });
 
@@ -695,8 +701,8 @@ describe('postgres-pool', () => {
         const connection = {
           query(_queryText: string, _args: string[]): void {},
           release(): void {},
-        };
-        const connectStub = sinon.stub(pool, 'connect').resolves(connection as unknown as PoolClientWithConnection);
+        } as unknown as PoolClient;
+        const connectStub = sinon.stub(pool, 'connect').resolves(connection);
         const queryStub = sinon.stub(connection, 'query').resolves(expectedResult);
         const releaseStub = sinon.stub(connection, 'release').resolves();
 
@@ -721,8 +727,8 @@ describe('postgres-pool', () => {
         const connection = {
           query(_queryText: string, _args: string[]): void {},
           release(): void {},
-        };
-        const connectStub = sinon.stub(pool, 'connect').resolves(connection as unknown as PoolClientWithConnection);
+        } as unknown as PoolClient;
+        const connectStub = sinon.stub(pool, 'connect').resolves(connection);
         const queryStub = sinon.stub(connection, 'query').resolves(expectedResult);
         const releaseStub = sinon.stub(connection, 'release').resolves();
 
@@ -742,7 +748,7 @@ describe('postgres-pool', () => {
   });
 
   describe('Integration tests', () => {
-    interface WithProcessId extends PoolClient {
+    interface WithProcessId extends pgPoolClient {
       processID?: number;
     }
 
