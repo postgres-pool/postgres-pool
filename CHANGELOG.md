@@ -1,3 +1,12 @@
+## [10.1.5](https://github.com/postgres-pool/postgres-pool/compare/v10.1.4...v10.1.5) (2025-05-12)
+
+### Bug Fixes
+
+- **deps:** update all dependencies ([#100](https://github.com/postgres-pool/postgres-pool/issues/100)) ([06925f7](https://github.com/postgres-pool/postgres-pool/commit/06925f7d4bf9f8dad5fdf65df045003c9cfe7481))
+- **deps:** update all dependencies ([#104](https://github.com/postgres-pool/postgres-pool/issues/104)) ([cc3a11f](https://github.com/postgres-pool/postgres-pool/commit/cc3a11f383df7130ff2c607a3d9a36de2a298171))
+- **deps:** update dependency @types/pg to v8.15.0 ([#103](https://github.com/postgres-pool/postgres-pool/issues/103)) ([20618cb](https://github.com/postgres-pool/postgres-pool/commit/20618cbd5605197b3220c1308cee482781a26f00))
+- Update type definitions for pg PoolClient and for chai should assertions ([#102](https://github.com/postgres-pool/postgres-pool/issues/102)) ([bb81dca](https://github.com/postgres-pool/postgres-pool/commit/bb81dcac752d34df32f56308e646c5a28b9a5eeb))
+
 ## [10.1.4](https://github.com/postgres-pool/postgres-pool/compare/v10.1.3...v10.1.4) (2025-05-05)
 
 ### Bug Fixes
