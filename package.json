@@ -72,8 +72,8 @@
     "node": ">=20.11.0"
   },
   "dependencies": {
-    "@types/pg": "8.15.0",
-    "pg": "8.15.6",
+    "@types/pg": "8.15.1",
+    "pg": "8.16.0",
     "strict-event-emitter-types": "2.0.0",
     "uuid": "11.1.0"
   },
@@ -96,7 +96,7 @@
     "eslint": "9.26.0",
     "eslint-config-decent": "2.8.0",
     "husky": "9.1.7",
-    "lint-staged": "15.5.2",
+    "lint-staged": "16.0.0",
     "markdownlint-cli": "0.44.0",
     "mocha": "11.2.2",
     "npm-run-all2": "8.0.1",
