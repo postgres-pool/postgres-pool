@@ -98,14 +98,14 @@
     "husky": "9.1.7",
     "lint-staged": "16.0.0",
     "markdownlint-cli": "0.45.0",
-    "mocha": "11.4.0",
+    "mocha": "11.5.0",
     "npm-run-all2": "8.0.3",
     "pinst": "3.0.0",
     "prettier": "3.5.3",
     "rimraf": "6.0.1",
     "sinon": "20.0.0",
     "ts-node": "10.9.2",
-    "semantic-release": "24.2.4",
+    "semantic-release": "24.2.5",
     "typescript": "5.8.3",
     "unbuild": "3.5.0"
   }
