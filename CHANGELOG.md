@@ -1,3 +1,10 @@
+## [10.1.7](https://github.com/postgres-pool/postgres-pool/compare/v10.1.6...v10.1.7) (2025-06-09)
+
+### Bug Fixes
+
+- **deps:** update dependency @types/pg to v8.15.3 ([#120](https://github.com/postgres-pool/postgres-pool/issues/120)) ([8d68baa](https://github.com/postgres-pool/postgres-pool/commit/8d68baa8bfcc93207daa5a3c18c4c8eeaa8dd756))
+- **deps:** update dependency @types/pg to v8.15.4 ([#121](https://github.com/postgres-pool/postgres-pool/issues/121)) ([3d8c25a](https://github.com/postgres-pool/postgres-pool/commit/3d8c25a973d3db4dad3101fd5dcd4f9e1aaa72ec))
+
 ## [10.1.6](https://github.com/postgres-pool/postgres-pool/compare/v10.1.5...v10.1.6) (2025-05-29)
 
 ### Bug Fixes
