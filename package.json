@@ -73,7 +73,7 @@
   },
   "dependencies": {
     "@types/pg": "8.15.4",
-    "pg": "8.16.0",
+    "pg": "8.16.1",
     "strict-event-emitter-types": "2.0.0",
     "uuid": "11.1.0"
   },
@@ -94,11 +94,11 @@
     "chai": "5.2.0",
     "chai-as-promised": "8.0.1",
     "eslint": "9.29.0",
-    "eslint-config-decent": "2.8.7",
+    "eslint-config-decent": "2.8.8",
     "husky": "9.1.7",
     "lint-staged": "16.1.2",
     "markdownlint-cli": "0.45.0",
-    "mocha": "11.6.0",
+    "mocha": "11.7.0",
     "npm-run-all2": "8.0.4",
     "pinst": "3.0.0",
     "prettier": "3.5.3",
