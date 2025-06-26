@@ -1,0 +1,4 @@
+filters:
+  allowlist:
+    allow:
+      - "/CHANGELOG\\.md$/"
