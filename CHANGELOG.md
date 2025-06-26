@@ -1,3 +1,10 @@
+## [10.1.8](https://github.com/postgres-pool/postgres-pool/compare/v10.1.7...v10.1.8) (2025-06-26)
+
+### Bug Fixes
+
+- **deps:** update all dependencies ([#135](https://github.com/postgres-pool/postgres-pool/issues/135)) ([7b7e212](https://github.com/postgres-pool/postgres-pool/commit/7b7e212357099590e8de282a68c2047b3a8ca063))
+- **deps:** update all dependencies ([#136](https://github.com/postgres-pool/postgres-pool/issues/136)) ([9969d47](https://github.com/postgres-pool/postgres-pool/commit/9969d470ee50f9b77b2d93a96c7fdbce288318c3))
+
 ## [10.1.7](https://github.com/postgres-pool/postgres-pool/compare/v10.1.6...v10.1.7) (2025-06-09)
 
 ### Bug Fixes
@@ -411,7 +418,6 @@
 - Added support for named parameters (namedParameterFindRegExp, getNamedParameterReplaceRegExp, and getNamedParameterName)
 
   Notes:
-
   - Named parameters are only used if an object is passed as the value parameter to the query function
 
     ```js
