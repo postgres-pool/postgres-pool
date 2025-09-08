@@ -1,3 +1,5 @@
+## [10.1.24](https://github.com/postgres-pool/postgres-pool/compare/v10.1.23...v10.1.24) (2025-09-08)
+
 ## [10.1.23](https://github.com/postgres-pool/postgres-pool/compare/v10.1.22...v10.1.23) (2025-08-25)
 
 ## [10.1.22](https://github.com/postgres-pool/postgres-pool/compare/v10.1.21...v10.1.22) (2025-08-18)
