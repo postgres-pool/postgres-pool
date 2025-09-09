@@ -1,3 +1,5 @@
+## [10.1.26](https://github.com/postgres-pool/postgres-pool/compare/v10.1.25...v10.1.26) (2025-09-09)
+
 ## [10.1.25](https://github.com/postgres-pool/postgres-pool/compare/v10.1.24...v10.1.25) (2025-09-08)
 
 ### Bug Fixes
