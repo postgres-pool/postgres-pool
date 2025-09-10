@@ -1,3 +1,9 @@
+## [10.1.27](https://github.com/postgres-pool/postgres-pool/compare/v10.1.26...v10.1.27) (2025-09-10)
+
+### Bug Fixes
+
+- **deps:** update dependency uuid to v13 ([#158](https://github.com/postgres-pool/postgres-pool/issues/158)) ([24d2cfd](https://github.com/postgres-pool/postgres-pool/commit/24d2cfd40977b58d2b59de1914d6c99bc400f699))
+
 ## [10.1.26](https://github.com/postgres-pool/postgres-pool/compare/v10.1.25...v10.1.26) (2025-09-09)
 
 ## [10.1.25](https://github.com/postgres-pool/postgres-pool/compare/v10.1.24...v10.1.25) (2025-09-08)
