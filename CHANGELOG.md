@@ -1,3 +1,17 @@
+# [11.0.0](https://github.com/postgres-pool/postgres-pool/compare/v10.1.34...v11.0.0) (2025-12-28)
+
+- feat!: remove runtime dependencies ([b1c4771](https://github.com/postgres-pool/postgres-pool/commit/b1c4771fde5241aea58bc942a607c1a43d6ae229))
+
+### BREAKING CHANGES
+
+- `pg` is now a peer dependency. Users must install it directly:
+  npm install pg postgres-pool
+
+* Move pg to peerDependencies
+* Move @types/pg to devDependencies
+* Move strict-event-emitter-types to devDependencies (types inlined)
+* Add build.config.ts to configure type inlining
+
 ## [10.1.34](https://github.com/postgres-pool/postgres-pool/compare/v10.1.33...v10.1.34) (2025-12-28)
 
 ### Bug Fixes
