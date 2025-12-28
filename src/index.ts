@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { EventEmitter } from 'node:events';
 import { setTimeout as setTimeoutPromise } from 'node:timers/promises';
 import type { ConnectionOptions } from 'node:tls';
@@ -5,7 +6,6 @@ import type { ConnectionOptions } from 'node:tls';
 import type { QueryResult, QueryResultRow } from 'pg';
 import pg from 'pg';
 import type { StrictEventEmitter } from 'strict-event-emitter-types';
-import { v4 } from 'uuid';
 
 import { cert } from './certs/rds-global-bundle.js';
 import { PostgresPoolError } from './PostgresPoolError.js';
@@ -319,7 +319,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
       return idleConnection;
     }
 
-    const id = v4();
+    const id = randomUUID();
 
     if (this.connections.length < this.options.poolSize) {
       this.connections.push(id);

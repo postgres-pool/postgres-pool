@@ -7,7 +7,6 @@ import 'chai/register-should.js';
 import { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import pg from 'pg';
-import type { PoolClient as pgPoolClient } from 'pg';
 import * as sinon from 'sinon';
 
 import type { PoolClient } from '../src/index.js';
@@ -748,7 +747,7 @@ describe('postgres-pool', () => {
   });
 
   describe('Integration tests', () => {
-    interface WithProcessId extends pgPoolClient {
+    interface WithProcessId extends PoolClient {
       processID?: number;
     }
 
@@ -767,9 +766,7 @@ describe('postgres-pool', () => {
 
       const warmConnections: WithProcessId[] = await Promise.all([pool1.connect(), pool2.connect()]);
 
-      for (const connection of warmConnections) {
-        connection.release();
-      }
+      await Promise.all(warmConnections.map((connection) => connection.release()));
 
       pool1.idleCount.should.equal(1);
       pool1.totalCount.should.equal(1);
@@ -826,12 +823,7 @@ describe('postgres-pool', () => {
 
       const warmConnections: WithProcessId[] = await Promise.all([pool1.connect(), pool2.connect()]);
 
-      await Promise.all(
-        // eslint-disable-next-line array-callback-return
-        warmConnections.map((connection) => {
-          connection.release();
-        }),
-      );
+      await Promise.all(warmConnections.map((connection) => connection.release()));
 
       const processIds = [];
       for (const connection of warmConnections) {
@@ -887,12 +879,7 @@ describe('postgres-pool', () => {
 
       const warmConnections: WithProcessId[] = await Promise.all([pool1.connect(), pool1.connect(), pool2.connect(), pool2.connect()]);
 
-      await Promise.all(
-        // eslint-disable-next-line array-callback-return
-        warmConnections.map((connection) => {
-          connection.release();
-        }),
-      );
+      await Promise.all(warmConnections.map((connection) => connection.release()));
 
       const processIds = [];
       for (const connection of warmConnections) {
@@ -948,12 +935,7 @@ describe('postgres-pool', () => {
 
       const warmConnections: WithProcessId[] = await Promise.all([pool1.connect(), pool1.connect(), pool2.connect(), pool2.connect()]);
 
-      await Promise.all(
-        // eslint-disable-next-line array-callback-return
-        warmConnections.map((connection) => {
-          connection.release();
-        }),
-      );
+      await Promise.all(warmConnections.map((connection) => connection.release()));
 
       const processIds = [];
       for (const connection of warmConnections) {
@@ -1013,7 +995,7 @@ describe('postgres-pool', () => {
         connectionString,
       });
       const validatorConnection: WithProcessId = await validatorPool.connect();
-      validatorConnection.release();
+      await validatorConnection.release();
 
       const pool = new Pool({
         connectionString,
