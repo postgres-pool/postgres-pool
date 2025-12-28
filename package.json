@@ -71,13 +71,14 @@
   "engines": {
     "node": ">=20.11.0"
   },
-  "dependencies": {
-    "@types/pg": "8.16.0",
-    "pg": "8.16.3",
-    "strict-event-emitter-types": "2.0.0"
+  "dependencies": {},
+  "peerDependencies": {
+    "pg": "^8.0.0"
   },
   "devDependencies": {
     "@faker-js/faker": "10.1.0",
+    "@types/pg": "8.16.0",
+    "pg": "8.16.3",
     "@semantic-release/changelog": "6.0.3",
     "@semantic-release/commit-analyzer": "13.0.1",
     "@semantic-release/git": "10.0.1",
@@ -103,6 +104,7 @@
     "prettier": "3.7.4",
     "rimraf": "6.1.2",
     "sinon": "21.0.0",
+    "strict-event-emitter-types": "2.0.0",
     "ts-node": "10.9.2",
     "semantic-release": "25.0.2",
     "typescript": "5.9.3",
