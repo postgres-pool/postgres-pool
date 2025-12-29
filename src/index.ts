@@ -378,6 +378,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
    * @param {object} values - Keys represent named parameters in the query
    * @returns Results from query
    */
+  // biome-ignore lint/suspicious/noExplicitAny
   public async query<TRow extends QueryResultRow = any>(text: string, values: Record<string, any>): Promise<QueryResult<TRow>>;
 
   /**
@@ -386,6 +387,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
    * @param {object[]} values
    * @returns Results from query
    */
+  // biome-ignore lint/suspicious/noExplicitAny
   public async query<TRow extends QueryResultRow = any>(text: string, values?: any[]): Promise<QueryResult<TRow>>;
 
   /**
@@ -394,6 +396,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
    * @param {object | object[]} values - If an object, keys represent named parameters in the query
    * @returns Results from query
    */
+  // biome-ignore lint/suspicious/noExplicitAny
   public query<TRow extends QueryResultRow = any>(text: string, values?: any[] | Record<string, any>): Promise<QueryResult<TRow>> {
     /* eslint-enable @typescript-eslint/no-explicit-any */
     if (Array.isArray(values)) {

@@ -70,7 +70,7 @@ describe('postgres-pool', () => {
       try {
         await pool.connect();
         assert.fail('Successful connection - This should not happen');
-      } catch (ex) {
+      } catch {
         // Note: We expect this to fail
       } finally {
         connectStub.restore();
@@ -232,7 +232,7 @@ describe('postgres-pool', () => {
         try {
           await pool.query('foo');
           assert.fail('Successful query - This should not happen');
-        } catch (ex) {
+        } catch {
           // Ignore...
         }
 
@@ -251,7 +251,7 @@ describe('postgres-pool', () => {
         try {
           await pool.query('foo');
           false.should.equal(true);
-        } catch (ex) {
+        } catch {
           // Ignore...
         }
 
@@ -386,7 +386,7 @@ describe('postgres-pool', () => {
 
       try {
         await pool.query('foo');
-      } catch (ex) {
+      } catch {
         // Ignore...
       }
 
@@ -422,7 +422,7 @@ describe('postgres-pool', () => {
 
       try {
         await Promise.all([pool.query('query - 1'), pool.query('query - 2'), pool.query('query - 3'), pool.query('query - 4')]);
-      } catch (ex) {
+      } catch {
         // ignore
       }
 
@@ -450,7 +450,7 @@ describe('postgres-pool', () => {
 
         try {
           await pool.query('foo');
-        } catch (ex) {
+        } catch {
           // Ignore...
         }
 
@@ -478,7 +478,7 @@ describe('postgres-pool', () => {
 
         try {
           await pool.query('foo');
-        } catch (ex) {
+        } catch {
           // Ignore...
         }
 
