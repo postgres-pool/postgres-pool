@@ -132,7 +132,7 @@ describe('postgres-pool', () => {
 
     it('should emit "connectionAddedToPool" after successful connection', async () => {
       const startTime = process.hrtime.bigint();
-      let connectionStartTime;
+      let connectionStartTime: bigint | undefined;
       const connectStub = sinon.stub(pg.Client.prototype, 'connect').resolves(setTimeout(1));
       const endStub = sinon.stub(pg.Client.prototype, 'end');
 
