@@ -1,6 +1,6 @@
 {
   "name": "postgres-pool",
-  "version": "11.0.0",
+  "version": "11.0.1",
   "description": "Node postgres connection pool implementation for node-pg",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
