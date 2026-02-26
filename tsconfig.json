@@ -1,15 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "ES2022",
+    "module": "nodenext",
     "lib": ["ESNext"],
-    "moduleResolution": "node",
-    "allowJs": false,
-
-    "esModuleInterop": true,
+    "types": ["node"],
 
     "outDir": "dist",
-    "baseUrl": ".",
 
     "declaration": true,
     "sourceMap": true,

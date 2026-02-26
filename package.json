@@ -27,7 +27,7 @@
   "scripts": {
     "build": "unbuild && cp -R certs dist",
     "test": "npm run test:types && vitest run",
-    "test:types": "tsc --noEmit --skipLibCheck",
+    "test:types": "tsgo --noEmit --skipLibCheck",
     "lint:markdown": "prettier --cache --write '*.md' '!(node_modules|dist)/**/*.md' && markdownlint '*.md' '!(node_modules|dist)/**/*.md' --config=.github/linters/.markdown-lint.yml --fix",
     "lint:code": "eslint --fix",
     "lint": "run-p lint:*",
@@ -72,14 +72,11 @@
   "engines": {
     "node": ">=20.11.0"
   },
-  "dependencies": {},
   "peerDependencies": {
     "pg": "^8.0.0"
   },
   "devDependencies": {
     "@faker-js/faker": "10.3.0",
-    "@types/pg": "8.16.0",
-    "pg": "8.19.0",
     "@semantic-release/changelog": "6.0.3",
     "@semantic-release/commit-analyzer": "13.0.1",
     "@semantic-release/git": "10.0.1",
@@ -87,19 +84,22 @@
     "@semantic-release/npm": "13.1.4",
     "@semantic-release/release-notes-generator": "14.1.0",
     "@types/node": ">=22",
+    "@types/pg": "8.16.0",
+    "@typescript/native-preview": "7.0.0-dev.20260226.1",
     "eslint": "10.0.2",
     "eslint-config-decent": "4.1.0",
     "husky": "9.1.7",
     "lint-staged": "16.2.7",
     "markdownlint-cli": "0.47.0",
-    "vitest": "4.0.18",
     "npm-run-all2": "8.0.4",
+    "pg": "8.19.0",
     "pinst": "3.0.0",
     "prettier": "3.8.1",
     "rimraf": "6.1.3",
-    "strict-event-emitter-types": "2.0.0",
     "semantic-release": "25.0.3",
+    "strict-event-emitter-types": "2.0.0",
     "typescript": "5.9.3",
-    "unbuild": "3.6.1"
+    "unbuild": "3.6.1",
+    "vitest": "4.0.18"
   }
 }
