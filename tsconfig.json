@@ -28,15 +28,11 @@
   },
   "include": [
     "src/**/*.ts",
-    "tests/**/*.ts",
-    "build.config.ts"
+    "build.config.ts",
+    "vitest.config.ts"
   ],
   "exclude": [
     "node_modules",
     "dist"
-  ],
-  "ts-node": {
-    "transpileOnly": true,
-    "swc": true
-  }
+  ]
 }
