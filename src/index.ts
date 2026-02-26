@@ -1,11 +1,11 @@
 import { randomUUID } from 'node:crypto';
 import { EventEmitter } from 'node:events';
 import { setTimeout as setTimeoutPromise } from 'node:timers/promises';
-import type { ConnectionOptions } from 'node:tls';
+import { type ConnectionOptions } from 'node:tls';
 
-import type { QueryResult, QueryResultRow } from 'pg';
+import { type QueryResult, type QueryResultRow } from 'pg';
 import pg from 'pg';
-import type { StrictEventEmitter } from 'strict-event-emitter-types';
+import { type StrictEventEmitter } from 'strict-event-emitter-types';
 
 import { cert } from './certs/rds-global-bundle.js';
 import { PostgresPoolError } from './PostgresPoolError.js';
