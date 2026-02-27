@@ -85,7 +85,7 @@
     "@semantic-release/release-notes-generator": "14.1.0",
     "@types/node": ">=22",
     "@types/pg": "8.16.0",
-    "@typescript/native-preview": "7.0.0-dev.20260226.1",
+    "@typescript/native-preview": "7.0.0-dev.20260227.1",
     "eslint": "10.0.2",
     "eslint-config-decent": "4.1.0",
     "husky": "9.1.7",
