@@ -76,7 +76,7 @@
     "pg": "^8.0.0"
   },
   "devDependencies": {
-    "@faker-js/faker": "10.3.0",
+    "@faker-js/faker": "10.4.0",
     "@semantic-release/changelog": "6.0.3",
     "@semantic-release/commit-analyzer": "13.0.1",
     "@semantic-release/git": "10.0.1",
@@ -85,9 +85,9 @@
     "@semantic-release/release-notes-generator": "14.1.0",
     "@types/node": ">=22",
     "@types/pg": "8.20.0",
-    "@typescript/native-preview": "7.0.0-dev.20260323.1",
+    "@typescript/native-preview": "7.0.0-dev.20260324.1",
     "eslint": "10.1.0",
-    "eslint-config-decent": "4.2.17",
+    "eslint-config-decent": "4.2.18",
     "husky": "9.1.7",
     "lint-staged": "16.4.0",
     "markdownlint-cli": "0.48.0",
@@ -100,6 +100,6 @@
     "strict-event-emitter-types": "2.0.0",
     "typescript": "6.0.2",
     "unbuild": "3.6.1",
-    "vitest": "4.1.0"
+    "vitest": "4.1.1"
   }
 }
