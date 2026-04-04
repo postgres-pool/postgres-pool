@@ -87,7 +87,7 @@
     "@types/pg": "8.20.0",
     "@typescript/native-preview": "7.0.0-dev.20260403.1",
     "eslint": "10.2.0",
-    "eslint-config-decent": "4.2.25",
+    "eslint-config-decent": "4.2.26",
     "husky": "9.1.7",
     "lint-staged": "16.4.0",
     "markdownlint-cli": "0.48.0",
