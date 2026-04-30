@@ -85,7 +85,7 @@
     "@semantic-release/release-notes-generator": "14.1.0",
     "@types/node": ">=22",
     "@types/pg": "8.20.0",
-    "@typescript/native-preview": "7.0.0-dev.20260419.1",
+    "@typescript/native-preview": "7.0.0-dev.20260429.1",
     "eslint": "10.2.1",
     "eslint-config-decent": "4.2.37",
     "husky": "9.1.7",
@@ -100,6 +100,6 @@
     "strict-event-emitter-types": "2.0.0",
     "typescript": "6.0.3",
     "unbuild": "3.6.1",
-    "vitest": "4.1.4"
+    "vitest": "4.1.5"
   }
 }
