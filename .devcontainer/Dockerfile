@@ -1,1 +1,1 @@
-FROM mcr.microsoft.com/devcontainers/javascript-node:24@sha256:5be6833735e290e26232abe2d65197942057fb5091f103c128ca454e2043c1d9
+FROM mcr.microsoft.com/devcontainers/javascript-node:24@sha256:37eb63d96c44badf9e9a68cf8ba2b4724c9682cda08cbd5fa50bf1955754497a
