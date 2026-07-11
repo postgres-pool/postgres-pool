@@ -1,3 +1,16 @@
+## [12.0.0](https://github.com/postgres-pool/postgres-pool/compare/v11.0.5...v12.0.0) (2026-07-11)
+
+### ⚠ BREAKING CHANGES
+
+- Node.js 20 is no longer supported; the minimum supported
+  version is now Node.js 22. Compiled output targets ES2023 and the ESM entry
+  moved from dist/index.mjs to dist/index.js (the package exports map shape is
+  unchanged).
+
+### Features
+
+- migrate to pnpm, Vite+ toolchain, and TypeScript 7 ([#293](https://github.com/postgres-pool/postgres-pool/issues/293)) ([b5566f2](https://github.com/postgres-pool/postgres-pool/commit/b5566f2de9d61e208bf7cdd9ad843cff70a3fea6))
+
 ## [11.0.5](https://github.com/postgres-pool/postgres-pool/compare/v11.0.4...v11.0.5) (2026-05-20)
 
 ## [11.0.4](https://github.com/postgres-pool/postgres-pool/compare/v11.0.3...v11.0.4) (2026-02-27)
