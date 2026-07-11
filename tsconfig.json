@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
+    "target": "ES2023",
     "module": "nodenext",
-    "lib": ["ESNext"],
+    "lib": ["ES2023"],
     "types": ["node"],
 
     "outDir": "dist",
@@ -22,13 +22,6 @@
     "noUncheckedIndexedAccess": true,
     "useUnknownInCatchVariables": false
   },
-  "include": [
-    "src/**/*.ts",
-    "build.config.ts",
-    "vitest.config.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+  "include": ["src/**/*.ts", "vite.config.ts"],
+  "exclude": ["node_modules", "dist"]
 }

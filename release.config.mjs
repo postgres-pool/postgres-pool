@@ -10,8 +10,10 @@ export default {
     [
       '@semantic-release/commit-analyzer',
       {
-        preset: 'angular',
+        preset: 'conventionalcommits',
         releaseRules: [
+          { breaking: true, release: 'major' },
+          { revert: true, release: 'patch' },
           { type: 'docs', release: 'patch' },
           { type: 'feat', release: 'minor' },
           { type: 'fix', release: 'patch' },
@@ -19,14 +21,14 @@ export default {
           { type: 'chore', release: 'patch' },
           { type: 'chore', scope: 'deps', release: false },
         ],
-        parserOpts: {
-          // eslint-disable-next-line security/detect-unsafe-regex
-          headerPattern: /^(\w+)(?:\(([^)]+)\))?: (.+)$/,
-          headerCorrespondence: ['type', 'scope', 'subject'],
-        },
       },
     ],
-    '@semantic-release/release-notes-generator',
+    [
+      '@semantic-release/release-notes-generator',
+      {
+        preset: 'conventionalcommits',
+      },
+    ],
     [
       '@semantic-release/changelog',
       {
@@ -43,7 +45,7 @@ export default {
     [
       '@semantic-release/git',
       {
-        assets: ['CHANGELOG.md', 'package.json', 'package-lock.json'],
+        assets: ['CHANGELOG.md', 'package.json', 'pnpm-lock.yaml'],
         message: `chore: release \${nextRelease.version} [skip ci]\n\n\${nextRelease.notes}`,
       },
     ],

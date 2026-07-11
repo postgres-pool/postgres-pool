@@ -31,5 +31,32 @@
       groupName: 'all dependencies',
       semanticCommitType: 'fix',
     },
+    {
+      // pnpm version bumps via the package.json packageManager field
+      matchDepTypes: ['packageManager'],
+      groupName: 'pnpm',
+      semanticCommitType: 'chore',
+    },
+    {
+      // The root oxlint devDependency must stay pinned to the version bundled
+      // by vite-plus (see vite.config.ts), so update these together and
+      // verify the alignment manually.
+      matchPackageNames: ['vite-plus', 'oxlint', 'oxlint-tsgolint', 'oxlint-plugin-eslint'],
+      groupName: 'vite-plus toolchain',
+      automerge: false,
+    },
+    {
+      // 0.x minors may contain breaking changes (semver) — review manually
+      matchCurrentVersion: '/^v?0\\./',
+      matchUpdateTypes: ['minor'],
+      automerge: false,
+    },
+    {
+      // v10 of the conventionalcommits preset silently produces empty release
+      // notes/changelog entries with @semantic-release/release-notes-generator
+      // 14.x (writer API mismatch); stay on 9.x until upstream supports it.
+      matchPackageNames: ['conventional-changelog-conventionalcommits'],
+      allowedVersions: '<10',
+    },
   ],
 }

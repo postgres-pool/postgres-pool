@@ -5,11 +5,9 @@
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
   "customizations": {
     "vscode": {
-      "extensions": [
-        "EditorConfig.EditorConfig"
-      ]
+      "extensions": ["EditorConfig.EditorConfig"]
     }
   },
-  "postCreateCommand": "npm install",
+  "postCreateCommand": "corepack enable && pnpm install",
   "forwardPorts": [5432]
 }
