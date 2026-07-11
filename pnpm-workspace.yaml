@@ -1,0 +1,10 @@
+# Per-project pnpm settings (this file does not create a multi-package workspace
+# without a `packages` field). https://pnpm.io/settings
+savePrefix: ''
+
+allowBuilds:
+  unrs-resolver: true
+
+minimumReleaseAgeExclude:
+  - '@vitest/eslint-plugin@1.6.23'
+  - semantic-release@25.0.6
