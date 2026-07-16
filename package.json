@@ -83,7 +83,7 @@
     "oxlint-tsgolint": "0.24.0",
     "pg": "8.22.0",
     "pinst": "3.0.0",
-    "semantic-release": "25.0.6",
+    "semantic-release": "25.0.7",
     "strict-event-emitter-types": "2.0.0",
     "typescript": "7.0.2",
     "vite-plus": "0.2.4",
