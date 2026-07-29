@@ -260,7 +260,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
       connectionTimeoutMillis: 5000,
       retryConnectionMaxRetries: 5,
       retryConnectionWaitMillis: 100,
-      retryConnectionErrorCodes: ['ENOTFOUND', 'EAI_AGAIN', 'ERR_PG_CONNECT_TIMEOUT', 'timeout expired'],
+      retryConnectionErrorCodes: ['ECONNREFUSED', 'ENOTFOUND', 'EAI_AGAIN', 'ERR_PG_CONNECT_TIMEOUT', 'timeout expired'],
       reconnectOnDatabaseIsStartingError: true,
       waitForDatabaseStartupMillis: 0,
       databaseStartupTimeoutMillis: 90000,
