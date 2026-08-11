@@ -68,7 +68,7 @@
     "@semantic-release/release-notes-generator": "14.1.1",
     "@stylistic/eslint-plugin": "5.10.0",
     "@types/node": ">=22",
-    "@types/pg": "8.20.4",
+    "@types/pg": "8.21.0",
     "conventional-changelog-conventionalcommits": "9.3.1",
     "eslint-config-decent": "4.2.38",
     "eslint-plugin-jsdoc": "64.0.1",
