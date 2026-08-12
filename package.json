@@ -81,7 +81,7 @@
     "oxlint": "1.72.0",
     "oxlint-plugin-eslint": "1.73.0",
     "oxlint-tsgolint": "7.0.2001",
-    "pg": "8.22.0",
+    "pg": "8.23.0",
     "pinst": "3.0.0",
     "semantic-release": "25.0.9",
     "strict-event-emitter-types": "2.0.0",
