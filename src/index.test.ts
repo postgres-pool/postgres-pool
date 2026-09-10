@@ -1,11 +1,18 @@
 import assert from 'node:assert';
+import { execFile } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import path from 'node:path';
 import { setTimeout } from 'node:timers/promises';
+import { fileURLToPath } from 'node:url';
+import { promisify } from 'node:util';
 
 import { faker } from '@faker-js/faker';
 import pg from 'pg';
 import { describe, expect, it, vi } from 'vitest';
 
 import { Pool, type PoolClient } from './index.js';
+
+const execFileAsync = promisify(execFile);
 
 describe('postgres-pool', () => {
   describe('#constructor()', () => {
@@ -271,6 +278,57 @@ describe('postgres-pool', () => {
         expect(connectSpy).toHaveBeenCalledTimes(2);
         expect(querySpy).toHaveBeenCalledTimes(1);
         expect(endSpy).toHaveBeenCalledTimes(2);
+      });
+    });
+  });
+
+  describe('timeout timer cleanup', () => {
+    const repoRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
+    const distEntryPath = path.join(repoRoot, 'dist/index.js');
+    const naturalExitFixturePath = path.join(repoRoot, 'test/fixtures/naturalExitAfterPoolUsage.mjs');
+
+    // Requires `pnpm run build` to have produced dist/index.js (as CI does before `pnpm test`);
+    // skipped rather than failed when running unit tests against source alone.
+    it.skipIf(!existsSync(distEntryPath))(
+      'should let the process exit naturally after connect -> release -> pool.end() (direct and queued paths), without waiting for the configured timeouts',
+      async () => {
+        await expect(execFileAsync('node', [naturalExitFixturePath], { timeout: 5000 })).resolves.toBeDefined();
+      },
+      10000,
+    );
+
+    it('should still throw ERR_PG_CONNECT_TIMEOUT with the expected message and code when connecting genuinely exceeds connectionTimeoutMillis', async () => {
+      vi.spyOn(pg.Client.prototype, 'connect').mockReturnValue(setTimeout(10000) as never);
+      vi.spyOn(pg.Client.prototype, 'end').mockResolvedValue(undefined);
+
+      const pool = new Pool({
+        connectionString: 'postgres://foo:bar@baz:1234/xur',
+        connectionTimeoutMillis: 1,
+        retryConnectionMaxRetries: 0,
+      });
+
+      await expect(pool.connect()).rejects.toMatchObject({
+        message: 'Timed out trying to connect to postgres',
+        code: 'ERR_PG_CONNECT_TIMEOUT',
+      });
+    });
+
+    it('should still throw ERR_PG_CONNECT_POOL_CONNECTION_TIMEOUT with the expected message and code when genuinely waiting too long for an available connection', async () => {
+      vi.spyOn(pg.Client.prototype, 'connect').mockResolvedValue(undefined);
+      vi.spyOn(pg.Client.prototype, 'end').mockResolvedValue(undefined);
+
+      const pool = new Pool({
+        connectionString: 'postgres://foo:bar@baz:1234/xur',
+        poolSize: 1,
+        waitForAvailableConnectionTimeoutMillis: 1,
+      });
+
+      // Consume the only pool slot and never release it
+      await pool.connect();
+
+      await expect(pool.connect()).rejects.toMatchObject({
+        message: 'Timed out while waiting for available connection in pool',
+        code: 'ERR_PG_CONNECT_POOL_CONNECTION_TIMEOUT',
       });
     });
   });

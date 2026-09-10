@@ -340,14 +340,12 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
 
     this.emit('connectionRequestQueued');
     this.connectionQueue.push(id);
-    let connectionTimeoutTimer: NodeJS.Timeout | null = null;
+    const connectionTimeoutAbortController = new AbortController();
 
     return (await Promise.race([
       new Promise((resolve) => {
         this.connectionQueueEventEmitter.on(`connection_${id}`, (client: PoolClient) => {
-          if (connectionTimeoutTimer) {
-            clearTimeout(connectionTimeoutTimer);
-          }
+          connectionTimeoutAbortController.abort();
 
           this.connectionQueueEventEmitter.removeAllListeners(`connection_${id}`);
 
@@ -356,7 +354,12 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
         });
       }),
       (async (): Promise<void> => {
-        connectionTimeoutTimer = await setTimeoutPromise(this.options.waitForAvailableConnectionTimeoutMillis);
+        try {
+          await setTimeoutPromise(this.options.waitForAvailableConnectionTimeoutMillis, undefined, { signal: connectionTimeoutAbortController.signal });
+        } catch {
+          // Aborted because a connection became available before the timeout elapsed
+          return;
+        }
 
         this.connectionQueueEventEmitter.removeAllListeners(`connection_${id}`);
 
@@ -565,7 +568,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
     };
 
     client.on('error', client.errorHandler);
-    let connectionTimeoutTimer: NodeJS.Timeout | null = null;
+    const connectionTimeoutAbortController = new AbortController();
     const { connectionTimeoutMillis } = this.options;
 
     try {
@@ -574,14 +577,17 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
           try {
             await client.connect();
           } finally {
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-            if (connectionTimeoutTimer) {
-              clearTimeout(connectionTimeoutTimer);
-            }
+            connectionTimeoutAbortController.abort();
           }
         })(),
         (async function connectTimeout(): Promise<void> {
-          connectionTimeoutTimer = await setTimeoutPromise(connectionTimeoutMillis);
+          try {
+            await setTimeoutPromise(connectionTimeoutMillis, undefined, { signal: connectionTimeoutAbortController.signal });
+          } catch {
+            // Aborted because the connection succeeded (or failed) before the timeout elapsed
+            return;
+          }
+
           throw new PostgresPoolError('Timed out trying to connect to postgres', 'ERR_PG_CONNECT_TIMEOUT');
         })(),
       ]);
