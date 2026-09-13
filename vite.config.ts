@@ -1,9 +1,8 @@
 import { oxlintConfig } from 'eslint-config-decent/oxlint';
 import { defineConfig } from 'vite-plus';
 
-// Keep the root `oxlint` devDependency pinned to the version bundled by
-// vite-plus (`vp --version`); the OxlintConfig types must come from the same
-// oxlint version that `vp lint` executes or this config fails to typecheck.
+// Let vite-plus supply oxlint and oxlint-tsgolint. A separate root version
+// can make eslint-config-decent's OxlintConfig types disagree with vp lint.
 const lint = oxlintConfig({
   enableReact: false,
   enableTestingLibrary: false,

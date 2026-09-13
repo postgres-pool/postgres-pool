@@ -38,10 +38,9 @@
       semanticCommitType: 'chore',
     },
     {
-      // The root oxlint devDependency must stay pinned to the version bundled
-      // by vite-plus (see vite.config.ts), so update these together and
-      // verify the alignment manually.
-      matchPackageNames: ['vite-plus', 'oxlint', 'oxlint-tsgolint', 'oxlint-plugin-eslint'],
+      // vite-plus owns the oxlint and oxlint-tsgolint versions. Keep the
+      // separately installed compatibility rules in the toolchain review.
+      matchPackageNames: ['vite-plus', 'oxlint-plugin-eslint'],
       groupName: 'vite-plus toolchain',
       automerge: false,
     },
