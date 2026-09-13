@@ -70,6 +70,7 @@
     "@types/node": ">=22",
     "@types/pg": "8.23.1",
     "conventional-changelog-conventionalcommits": "10.4.0",
+    "eslint": "10.9.0",
     "eslint-config-decent": "4.2.38",
     "eslint-plugin-jsdoc": "64.3.4",
     "eslint-plugin-security": "4.0.1",
