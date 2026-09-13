@@ -1,3 +1,9 @@
+## [12.0.1](https://github.com/postgres-pool/postgres-pool/compare/v12.0.0...v12.0.1) (2026-09-13)
+
+### Bug Fixes
+
+- Prevent connection timers from delaying process exit ([#401](https://github.com/postgres-pool/postgres-pool/issues/401)) ([1e2e485](https://github.com/postgres-pool/postgres-pool/commit/1e2e485f2aef523dcbd7f18d2480fc61fb574fcd))
+
 ## [12.0.0](https://github.com/postgres-pool/postgres-pool/compare/v11.0.5...v12.0.0) (2026-07-11)
 
 ### ⚠ BREAKING CHANGES
