@@ -1,12 +1,5 @@
 # Contributing Guidelines
 
-## Tests
-
-Run `pnpm run build` before `pnpm test` to include the process-exit regression test.
-It runs `test/fixtures/naturalExitAfterPoolUsage.mjs` in a separate Node.js process against the built package.
-The child must exit naturally: running this check inside the test runner would not prove that pool timers let the process exit.
-The fixture stays outside `src` because `src` is included in the published package.
-
 ## Pull Request Format
 
 The title of your PR should match the following format:
