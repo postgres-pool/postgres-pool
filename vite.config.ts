@@ -1,9 +1,17 @@
 import { oxlintConfig } from 'eslint-config-decent/oxlint';
 import { defineConfig } from 'vite-plus';
+import { type DummyRule, type OxlintConfig, type OxlintOverride } from 'vite-plus/lint';
+
+// v4's return type includes every native rule's version-specific options.
+// Describe the generated config's rule maps until the upstream type fix ships.
+type LintConfig = Pick<OxlintConfig, 'plugins' | 'jsPlugins' | 'options' | 'settings' | 'ignorePatterns' | 'env'> & {
+  rules?: Record<string, DummyRule | undefined>;
+  overrides?: (Pick<OxlintOverride, 'files' | 'jsPlugins'> & { rules?: Record<string, DummyRule | undefined> })[];
+};
 
 // Let vite-plus supply oxlint and oxlint-tsgolint. A separate root version
 // can make eslint-config-decent's OxlintConfig types disagree with vp lint.
-const lint = oxlintConfig({
+const lint: LintConfig = oxlintConfig({
   enableReact: false,
   enableTestingLibrary: false,
 });
@@ -40,6 +48,10 @@ for (const override of lint.overrides ?? []) {
 
 lint.rules = {
   ...lint.rules,
+  // eslint-config-decent@4 passes ESLint-only fixer options to this native
+  // rule; newer oxlint rejects them. Keep the supported option until the
+  // upstream config fix is released.
+  'jsdoc/require-param': ['error', { ignoreWhenAllParamsMissing: true }],
   // PostgresPoolError takes `code` as its second constructor parameter; the
   // `options`-shaped signature this rule wants would break the public API.
   'unicorn-compat/custom-error-definition': 'off',
