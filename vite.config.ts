@@ -1,43 +1,14 @@
-import { oxlintConfig } from 'eslint-config-decent/oxlint';
+import { oxlintConfig } from 'oxlint-config-decent';
 import { defineConfig } from 'vite-plus';
 
-// Keep the root `oxlint` devDependency pinned to the version bundled by
-// vite-plus (`vp --version`); the OxlintConfig types must come from the same
-// oxlint version that `vp lint` executes or this config fails to typecheck.
+// `typescript` is aliased to @typescript/typescript6 (the TypeScript 6 JS API)
+// so the typescript-compat and vitest-compat plugins can load, while `tsc`
+// comes from TypeScript 7 via @typescript/native. See "Using TypeScript 7" in
+// oxlint-config-decent's README.
 const lint = oxlintConfig({
   enableReact: false,
   enableTestingLibrary: false,
 });
-
-// typescript-eslint (and @vitest/eslint-plugin, which depends on it) cannot
-// load under typescript@7 because the TS6 JS compiler API was removed
-// (https://github.com/typescript-eslint/typescript-eslint/issues/12518).
-// Drop those two compat plugins and their gap rules until upstream supports
-// TS7; native typescript rules and tsgolint type-aware rules remain active.
-const ts7IncompatiblePlugins = new Set(['@typescript-eslint/eslint-plugin', '@vitest/eslint-plugin']);
-const removedPluginNames = new Set<string>();
-lint.jsPlugins = lint.jsPlugins?.filter((plugin) => {
-  if (typeof plugin === 'string' || !ts7IncompatiblePlugins.has(plugin.specifier)) {
-    return true;
-  }
-
-  removedPluginNames.add(plugin.name);
-  return false;
-});
-
-function stripRemovedPluginRules(rules?: Record<string, unknown>): void {
-  for (const rule of Object.keys(rules ?? {})) {
-    const [pluginName] = rule.split('/');
-    if (pluginName && removedPluginNames.has(pluginName)) {
-      delete rules?.[rule];
-    }
-  }
-}
-
-stripRemovedPluginRules(lint.rules);
-for (const override of lint.overrides ?? []) {
-  stripRemovedPluginRules(override.rules);
-}
 
 lint.rules = {
   ...lint.rules,
