@@ -9,7 +9,8 @@
 
 import pg from 'pg';
 
-import { Pool } from '../../dist/index.js';
+// Use source types so lint can run before dist has been built, while executing the built package.
+const { Pool } = /** @type {typeof import('../../src/index.js')} */ (await import('../../dist/index.js'));
 
 pg.Client.prototype.connect = async function connect() {
   /* empty */

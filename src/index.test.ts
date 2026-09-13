@@ -292,10 +292,48 @@ describe('postgres-pool', () => {
     it.skipIf(!existsSync(distEntryPath))(
       'should let the process exit naturally after connect -> release -> pool.end() (direct and queued paths), without waiting for the configured timeouts',
       async () => {
-        await expect(execFileAsync('node', [naturalExitFixturePath], { timeout: 5000 })).resolves.toBeDefined();
+        await expect(execFileAsync(process.execPath, [naturalExitFixturePath], { timeout: 5000 })).resolves.toBeDefined();
       },
       10000,
     );
+
+    it('should reject an invalid connection timeout instead of returning an unconnected client', async () => {
+      vi.spyOn(pg.Client.prototype, 'connect').mockReturnValue(new Promise<void>(() => {}) as never);
+      vi.spyOn(pg.Client.prototype, 'end').mockResolvedValue(undefined);
+
+      const pool = new Pool({
+        connectionString: 'postgres://foo:bar@baz:1234/xur',
+        // JavaScript callers can supply an environment variable without converting it to a number.
+        connectionTimeoutMillis: '1000' as unknown as number,
+        retryConnectionMaxRetries: 0,
+      });
+      const connectionAdded = vi.fn();
+      pool.on('connectionAddedToPool', connectionAdded);
+
+      await expect(pool.connect()).rejects.toMatchObject({ code: 'ERR_INVALID_ARG_TYPE' });
+      expect(connectionAdded).not.toHaveBeenCalled();
+      expect(pool.totalCount).toBe(0);
+      await pool.end();
+    });
+
+    it('should reject an invalid queue timeout instead of returning undefined', async () => {
+      vi.spyOn(pg.Client.prototype, 'connect').mockResolvedValue(undefined);
+      vi.spyOn(pg.Client.prototype, 'end').mockResolvedValue(undefined);
+
+      const pool = new Pool({
+        connectionString: 'postgres://foo:bar@baz:1234/xur',
+        poolSize: 1,
+        waitForAvailableConnectionTimeoutMillis: '1000' as unknown as number,
+      });
+      const client = await pool.connect();
+
+      try {
+        await expect(pool.connect()).rejects.toMatchObject({ code: 'ERR_INVALID_ARG_TYPE' });
+      } finally {
+        await pool.end();
+        await client.release();
+      }
+    });
 
     it('should still throw ERR_PG_CONNECT_TIMEOUT with the expected message and code when connecting genuinely exceeds connectionTimeoutMillis', async () => {
       vi.spyOn(pg.Client.prototype, 'connect').mockReturnValue(setTimeout(10000) as never);

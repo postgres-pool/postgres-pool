@@ -356,9 +356,13 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
       (async (): Promise<void> => {
         try {
           await setTimeoutPromise(this.options.waitForAvailableConnectionTimeoutMillis, undefined, { signal: connectionTimeoutAbortController.signal });
-        } catch {
-          // Aborted because a connection became available before the timeout elapsed
-          return;
+        } catch (ex) {
+          if (connectionTimeoutAbortController.signal.aborted) {
+            // Aborted because a connection became available before the timeout elapsed
+            return;
+          }
+
+          throw ex;
         }
 
         this.connectionQueueEventEmitter.removeAllListeners(`connection_${id}`);
@@ -583,9 +587,13 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
         (async function connectTimeout(): Promise<void> {
           try {
             await setTimeoutPromise(connectionTimeoutMillis, undefined, { signal: connectionTimeoutAbortController.signal });
-          } catch {
-            // Aborted because the connection succeeded (or failed) before the timeout elapsed
-            return;
+          } catch (ex) {
+            if (connectionTimeoutAbortController.signal.aborted) {
+              // Aborted because the connection succeeded (or failed) before the timeout elapsed
+              return;
+            }
+
+            throw ex;
           }
 
           throw new PostgresPoolError('Timed out trying to connect to postgres', 'ERR_PG_CONNECT_TIMEOUT');
