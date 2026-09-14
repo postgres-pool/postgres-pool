@@ -8,3 +8,11 @@ allowBuilds:
 minimumReleaseAgeExclude:
   - '@vitest/eslint-plugin@1.6.23'
   - semantic-release@25.0.6
+
+# semantic-release resolves its plugins from its own dependency tree first, so a devDependency
+# alone is ignored. Force its bundled copies onto the v15/v14 betas that support
+# conventional-changelog-writer@9, which conventional-changelog-conventionalcommits@10 requires.
+# Drop once semantic-release itself depends on these majors.
+overrides:
+  '@semantic-release/commit-analyzer': 14.0.0-beta.3
+  '@semantic-release/release-notes-generator': 15.0.0-beta.2
