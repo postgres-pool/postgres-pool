@@ -163,8 +163,8 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  '@semantic-release/commit-analyzer': 14.0.0-beta.3
-  '@semantic-release/release-notes-generator': 15.0.0-beta.2
+  '@semantic-release/commit-analyzer': 14.0.0-beta.4
+  '@semantic-release/release-notes-generator': 15.0.0-beta.3
 
 importers:
 
@@ -177,8 +177,8 @@ importers:
         specifier: 7.0.0
         version: 7.0.0(semantic-release@25.0.9(@typescript/typescript6@6.0.2)(supports-color@7.2.0))
       '@semantic-release/commit-analyzer':
-        specifier: 14.0.0-beta.3
-        version: 14.0.0-beta.3(semantic-release@25.0.9(@typescript/typescript6@6.0.2)(supports-color@7.2.0))(supports-color@7.2.0)
+        specifier: 14.0.0-beta.4
+        version: 14.0.0-beta.4(semantic-release@25.0.9(@typescript/typescript6@6.0.2)(supports-color@7.2.0))(supports-color@7.2.0)
       '@semantic-release/git':
         specifier: 11.0.1
         version: 11.0.1(semantic-release@25.0.9(@typescript/typescript6@6.0.2)(supports-color@7.2.0))(supports-color@7.2.0)
@@ -189,8 +189,8 @@ importers:
         specifier: 13.1.5
         version: 13.1.5(semantic-release@25.0.9(@typescript/typescript6@6.0.2)(supports-color@7.2.0))
       '@semantic-release/release-notes-generator':
-        specifier: 15.0.0-beta.2
-        version: 15.0.0-beta.2(semantic-release@25.0.9(@typescript/typescript6@6.0.2)(supports-color@7.2.0))(supports-color@7.2.0)
+        specifier: 15.0.0-beta.3
+        version: 15.0.0-beta.3(semantic-release@25.0.9(@typescript/typescript6@6.0.2)(supports-color@7.2.0))(supports-color@7.2.0)
       '@stylistic/eslint-plugin':
         specifier: 5.10.0
         version: 5.10.0(eslint@10.10.0(supports-color@7.2.0))
@@ -988,8 +988,8 @@ packages:
     peerDependencies:
       semantic-release: '>=20.1.0'
 
-  '@semantic-release/commit-analyzer@14.0.0-beta.3':
-    resolution: {integrity: sha512-GdIaqXXtnGgDu/tnRctE3sukVKx0lOvISRftmJoVR5COYxpAoD3GwYC89pfbMwaK0BXMnCdYoo2IxOLQ1635Vw==}
+  '@semantic-release/commit-analyzer@14.0.0-beta.4':
+    resolution: {integrity: sha512-lYaWYjQE6cfXLmqo/zyk0VLRjA7Pd02JIgpB2XhVdEt++r45KvvfT/Zi6xjzxqXuhIkmrjNGbzwMzwHPw09QhQ==}
     engines: {node: ^22.22.2 || >=24.15}
     peerDependencies:
       semantic-release: '>=20.1.0'
@@ -1016,8 +1016,8 @@ packages:
     peerDependencies:
       semantic-release: '>=20.1.0'
 
-  '@semantic-release/release-notes-generator@15.0.0-beta.2':
-    resolution: {integrity: sha512-2hm2b0btfnFNafBGrXOxxDi5WFgROv9+CEsXQk5sKR116+V4dG+nAiNJPjBqLe3cjsq6BfmdDKGiEVwx8JWdCA==}
+  '@semantic-release/release-notes-generator@15.0.0-beta.3':
+    resolution: {integrity: sha512-gqNTU88dMlqwbIoZm/OoUACd304QNFjJGXdF+rKTrIcZ2OOSjmsU3d5eVtzGMk8bbuRJaPgHA/qsbB+OyWEWCg==}
     engines: {node: ^22.22.2 || >=24.15}
     peerDependencies:
       semantic-release: '>=20.1.0'
@@ -4245,8 +4245,9 @@ snapshots:
       lodash-es: 4.18.1
       semantic-release: 25.0.9(@typescript/typescript6@6.0.2)(supports-color@7.2.0)
 
-  '@semantic-release/commit-analyzer@14.0.0-beta.3(semantic-release@25.0.9(@typescript/typescript6@6.0.2)(supports-color@7.2.0))(supports-color@7.2.0)':
+  '@semantic-release/commit-analyzer@14.0.0-beta.4(semantic-release@25.0.9(@typescript/typescript6@6.0.2)(supports-color@7.2.0))(supports-color@7.2.0)':
     dependencies:
+      conventional-changelog-angular: 9.4.0
       conventional-changelog-conventionalcommits: 10.4.0
       conventional-commits-filter: 6.0.1
       conventional-commits-parser: 7.1.2
@@ -4317,9 +4318,10 @@ snapshots:
       semver: 7.8.5
       tempy: 3.2.0
 
-  '@semantic-release/release-notes-generator@15.0.0-beta.2(semantic-release@25.0.9(@typescript/typescript6@6.0.2)(supports-color@7.2.0))(supports-color@7.2.0)':
+  '@semantic-release/release-notes-generator@15.0.0-beta.3(semantic-release@25.0.9(@typescript/typescript6@6.0.2)(supports-color@7.2.0))(supports-color@7.2.0)':
     dependencies:
       conventional-changelog-angular: 9.4.0
+      conventional-changelog-conventionalcommits: 10.4.0
       conventional-changelog-writer: 9.2.1
       conventional-commits-filter: 6.0.1
       conventional-commits-parser: 7.1.2
@@ -6417,11 +6419,11 @@ snapshots:
 
   semantic-release@25.0.9(@typescript/typescript6@6.0.2)(supports-color@7.2.0):
     dependencies:
-      '@semantic-release/commit-analyzer': 14.0.0-beta.3(semantic-release@25.0.9(@typescript/typescript6@6.0.2)(supports-color@7.2.0))(supports-color@7.2.0)
+      '@semantic-release/commit-analyzer': 14.0.0-beta.4(semantic-release@25.0.9(@typescript/typescript6@6.0.2)(supports-color@7.2.0))(supports-color@7.2.0)
       '@semantic-release/error': 4.0.0
       '@semantic-release/github': 12.0.9(semantic-release@25.0.9(@typescript/typescript6@6.0.2)(supports-color@7.2.0))(supports-color@7.2.0)
       '@semantic-release/npm': 13.1.5(semantic-release@25.0.9(@typescript/typescript6@6.0.2)(supports-color@7.2.0))
-      '@semantic-release/release-notes-generator': 15.0.0-beta.2(semantic-release@25.0.9(@typescript/typescript6@6.0.2)(supports-color@7.2.0))(supports-color@7.2.0)
+      '@semantic-release/release-notes-generator': 15.0.0-beta.3(semantic-release@25.0.9(@typescript/typescript6@6.0.2)(supports-color@7.2.0))(supports-color@7.2.0)
       aggregate-error: 5.0.0
       cosmiconfig: 9.0.2(@typescript/typescript6@6.0.2)
       debug: 4.4.3(supports-color@7.2.0)

@@ -1,5 +1,3 @@
-# Per-project pnpm settings (this file does not create a multi-package workspace
-# without a `packages` field). https://pnpm.io/settings
 savePrefix: ''
 
 allowBuilds:
@@ -15,5 +13,5 @@ minimumReleaseAgeExclude:
 # conventional-changelog-writer@9, which conventional-changelog-conventionalcommits@10 requires.
 # Drop once semantic-release itself depends on these majors.
 overrides:
-  '@semantic-release/commit-analyzer': 14.0.0-beta.3
-  '@semantic-release/release-notes-generator': 15.0.0-beta.2
+  '@semantic-release/commit-analyzer': 14.0.0-beta.4
+  '@semantic-release/release-notes-generator': 15.0.0-beta.3
