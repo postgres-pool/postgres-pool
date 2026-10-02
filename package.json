@@ -73,7 +73,7 @@
     "@vitest/eslint-plugin": "1.6.27",
     "conventional-changelog-conventionalcommits": "10.4.0",
     "eslint": "10.11.0",
-    "eslint-plugin-jsdoc": "64.5.4",
+    "eslint-plugin-jsdoc": "65.0.0",
     "eslint-plugin-security": "4.1.0",
     "eslint-plugin-unicorn": "76.0.0",
     "husky": "9.1.7",
