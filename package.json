@@ -73,7 +73,7 @@
     "@vitest/eslint-plugin": "1.6.27",
     "conventional-changelog-conventionalcommits": "10.4.0",
     "eslint": "10.11.0",
-    "eslint-plugin-jsdoc": "65.0.0",
+    "eslint-plugin-jsdoc": "65.0.1",
     "eslint-plugin-security": "4.1.0",
     "eslint-plugin-unicorn": "76.0.0",
     "husky": "9.1.7",
@@ -90,7 +90,7 @@
     "strict-event-emitter-types": "2.0.0",
     "typescript": "npm:@typescript/typescript6@6.0.2",
     "vite-plus": "0.3.1",
-    "vitest": "5.0.2"
+    "vitest": "5.0.3"
   },
   "peerDependencies": {
     "pg": "^8.0.0"
