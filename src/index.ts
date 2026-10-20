@@ -7,7 +7,8 @@ import { type QueryResult, type QueryResultRow } from 'pg';
 import pg from 'pg';
 import { type StrictEventEmitter } from 'strict-event-emitter-types';
 
-import { cert } from './certs/rds-global-bundle.js';
+import { cert as amazonTrustServicesCert } from './certs/amazon-trust-services.js';
+import { cert as rdsCert } from './certs/rds-global-bundle.js';
 import { PostgresPoolError } from './PostgresPoolError.js';
 
 export { PostgresPoolError };
@@ -21,7 +22,7 @@ export interface SslSettings {
 export interface SslSettingsOrAwsRdsSsl {
   /**
    * TLS options for the underlying socket connection.
-   * NOTE: `aws-rds` sets up strict tls connection details for connecting to AWS RDS instances
+   * NOTE: `aws-rds` sets up strict tls connection details for connecting to AWS RDS instances and RDS Proxy endpoints
    */
   ssl?: ConnectionOptions | 'aws-rds';
 }
@@ -288,7 +289,7 @@ export class Pool extends (EventEmitter as new () => PoolEmitter) {
     if (ssl === 'aws-rds') {
       this.options.ssl = {
         rejectUnauthorized: true,
-        ca: cert,
+        ca: [rdsCert, amazonTrustServicesCert],
         minVersion: 'TLSv1.2',
       };
     } else {

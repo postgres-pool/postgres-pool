@@ -112,7 +112,8 @@ const pool = new Pool({
 
 Setting ssl='aws-rds' will:
 
-- configure the [AWS root certificate](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html)
+- configure the [AWS RDS root certificates](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html)
+- configure the [Amazon Trust Services root certificates](https://www.amazontrust.com/repository/), which sign [RDS Proxy certificates](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-proxy.howitworks.html)
 - reject any connection which is not authorized with the list of supplied CAs.
 - attempt to use TLSv1.2 as the minimum TLS version.
 
@@ -124,7 +125,7 @@ import { Pool } from 'postgres-pool';
 const pool = new Pool({
   ssl: {
     rejectUnauthorized: true,
-    ca: fs.readFileSync('./certs/rds-global-bundle.pem'),
+    ca: [fs.readFileSync('./certs/rds-global-bundle.pem'), fs.readFileSync('./certs/amazon-trust-services.pem')],
     minVersion: 'TLSv1.2',
   },
 });

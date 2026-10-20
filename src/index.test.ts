@@ -1,8 +1,10 @@
 import assert from 'node:assert';
 import { execFile } from 'node:child_process';
+import { X509Certificate } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { setTimeout } from 'node:timers/promises';
+import { type ConnectionOptions, rootCertificates } from 'node:tls';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 
@@ -13,6 +15,12 @@ import { describe, expect, it, vi } from 'vitest';
 import { Pool, type PoolClient } from './index.js';
 
 const execFileAsync = promisify(execFile);
+
+class InspectablePool extends Pool {
+  public get ssl(): ConnectionOptions | undefined {
+    return this.options.ssl;
+  }
+}
 
 describe('postgres-pool', () => {
   describe('#constructor()', () => {
@@ -27,6 +35,27 @@ describe('postgres-pool', () => {
       await pool.connect();
 
       expect(connectSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it("should trust the Amazon Trust Services roots that sign RDS Proxy certificates when ssl is 'aws-rds'", () => {
+      function fingerprints(pems: string[]): string[] {
+        return pems.map((pem) => new X509Certificate(pem).fingerprint256);
+      }
+
+      const amazonTrustServicesRoots = rootCertificates.filter((pem) => /^CN=(?:Amazon Root CA [1-4]|Starfield Services Root Certificate Authority - G2)$/m.test(new X509Certificate(pem).subject));
+
+      const pool = new InspectablePool({
+        connectionString: 'postgres://foo:bar@baz:1234/xur',
+        ssl: 'aws-rds',
+      });
+      const trustedPems =
+        [pool.ssl?.ca]
+          .flat()
+          .join('\n')
+          .match(/-----BEGIN CERTIFICATE-----[\s\S]+?-----END CERTIFICATE-----/g) ?? [];
+
+      expect(amazonTrustServicesRoots).toHaveLength(5);
+      expect(fingerprints(trustedPems)).toStrictEqual(expect.arrayContaining(fingerprints(amazonTrustServicesRoots)));
     });
   });
 
