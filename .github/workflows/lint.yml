@@ -52,6 +52,8 @@ jobs:
           VALIDATE_JSON_PRETTIER: false
           VALIDATE_JAVASCRIPT_ES: false
           VALIDATE_JAVASCRIPT_PRETTIER: false
+          # vp fmt formats Markdown (single quotes, 200-column code blocks); prettier disagrees
+          VALIDATE_MARKDOWN_PRETTIER: false
           VALIDATE_GITHUB_ACTIONS_ZIZMOR: false
           VALIDATE_TRIVY: false
           VALIDATE_TSX: false

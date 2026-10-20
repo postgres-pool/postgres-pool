@@ -11,7 +11,7 @@ Connection pool implementation for [pg](https://node-postgres.com/). Compatible 
 - There were some connection timeout issues that we encountered with pg-pool and the npm was not being updated.
 - [Added graceful cluster failover](#handle-cluster-failover-gracefully)
 - [Added default AWS TLS settings via `ssl='aws-rds'`](#aws-rds-specific-tls-settings-for-connections)
-- Typescript is used to enforce type safety and promises are preferred over callbacks.
+- TypeScript is used to enforce type safety and promises are preferred over callbacks.
 
 ## Getting Started
 
