@@ -1,3 +1,10 @@
+## [12.0.2](https://github.com/postgres-pool/postgres-pool/compare/v12.0.1...v12.0.2) (2026-10-21)
+
+### Bug Fixes
+
+- refresh the RDS global certificate bundle ([#476](https://github.com/postgres-pool/postgres-pool/issues/476)) ([be29a75](https://github.com/postgres-pool/postgres-pool/commit/be29a750a82fc5a70dc9513d20b9c48ee03008ed))
+- trust RDS Proxy certificates with the aws-rds TLS setting ([#475](https://github.com/postgres-pool/postgres-pool/issues/475)) ([34b20a3](https://github.com/postgres-pool/postgres-pool/commit/34b20a3b2c388a99c75ebf149abadc5b95f7ed68))
+
 ## [12.0.1](https://github.com/postgres-pool/postgres-pool/compare/v12.0.0...v12.0.1) (2026-09-13)
 
 ### Bug Fixes
