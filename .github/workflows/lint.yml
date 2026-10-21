@@ -32,8 +32,8 @@ jobs:
         env:
           # To report GitHub Actions status checks
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Generated lockfile; codespell flags package names/hashes in it
-          FILTER_REGEX_EXCLUDE: .*pnpm-lock\.yaml$
+          # Generated lockfile and certificate bundles; codespell flags package names, hashes and base64 in them
+          FILTER_REGEX_EXCLUDE: .*(pnpm-lock\.yaml|certs/[^/]+)$
           FIX_CSS_PRETTIER: false
           VALIDATE_ALL_CODEBASE: false
           VALIDATE_ANSIBLE: false
