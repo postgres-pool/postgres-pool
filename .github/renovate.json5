@@ -39,17 +39,10 @@
     },
     {
       // The root oxlint devDependency must stay pinned to the version bundled
-      // by vite-plus (see vite.config.ts), so update these together and
-      // verify the alignment manually.
+      // by vite-plus (see vite.config.ts), so update these together. A
+      // mismatch fails `tsc --noEmit` in CI, which blocks the automerge.
       matchPackageNames: ['vite-plus', 'oxlint', 'oxlint-tsgolint', 'oxlint-plugin-eslint'],
       groupName: 'vite-plus toolchain',
-      automerge: false,
-    },
-    {
-      // 0.x minors may contain breaking changes (semver) — review manually
-      matchCurrentVersion: '/^v?0\\./',
-      matchUpdateTypes: ['minor'],
-      automerge: false,
     },
     {
       // v10 of the conventionalcommits preset silently produces empty release
