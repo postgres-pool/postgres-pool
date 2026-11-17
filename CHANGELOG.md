@@ -1,3 +1,5 @@
+## [12.0.3](https://github.com/postgres-pool/postgres-pool/compare/v12.0.2...v12.0.3) (2026-11-17)
+
 ## [12.0.2](https://github.com/postgres-pool/postgres-pool/compare/v12.0.1...v12.0.2) (2026-10-21)
 
 ### Bug Fixes
