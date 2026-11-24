@@ -14,4 +14,4 @@ minimumReleaseAgeExclude:
 # Drop once semantic-release itself depends on these majors.
 overrides:
   '@semantic-release/commit-analyzer': 14.0.0-beta.4
-  '@semantic-release/release-notes-generator': 15.0.0-beta.3
+  '@semantic-release/release-notes-generator': 15.0.0-beta.4
