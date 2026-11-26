@@ -212,7 +212,7 @@ importers:
         version: 15.0.0-beta.4(semantic-release@26.0.1(supports-color@7.2.0))(supports-color@7.2.0)
       '@stylistic/eslint-plugin':
         specifier: 6.0.1
-        version: 6.0.1(eslint@10.15.0(supports-color@7.2.0))(oxlint@1.94.0(oxlint-tsgolint@7.0.2007)(vite-plus@1.7.0(@types/node@26.6.5)(@typescript/typescript6@6.0.2)(oxlint-tsgolint@7.0.2007)(yaml@2.9.1)))
+        version: 6.0.1(eslint@10.15.0(supports-color@7.2.0))(oxlint@1.94.0(oxlint-tsgolint@7.0.2008)(vite-plus@1.7.0(@types/node@26.6.5)(@typescript/typescript6@6.0.2)(oxlint-tsgolint@7.0.2008)(yaml@2.9.1)))
       '@types/node':
         specifier: '>=22'
         version: 26.6.5
@@ -254,16 +254,16 @@ importers:
         version: 9.1.0
       oxlint:
         specifier: 1.94.0
-        version: 1.94.0(oxlint-tsgolint@7.0.2007)(vite-plus@1.7.0(@types/node@26.6.5)(@typescript/typescript6@6.0.2)(oxlint-tsgolint@7.0.2007)(yaml@2.9.1))
+        version: 1.94.0(oxlint-tsgolint@7.0.2008)(vite-plus@1.7.0(@types/node@26.6.5)(@typescript/typescript6@6.0.2)(oxlint-tsgolint@7.0.2008)(yaml@2.9.1))
       oxlint-config-decent:
         specifier: 5.0.0
-        version: 5.0.0(0be5a9cdae22b1268f9736bf8f6a29f4)
+        version: 5.0.0(250cbfd9a36fbd02ee606f27228b2f2e)
       oxlint-plugin-eslint:
         specifier: 1.94.0
         version: 1.94.0
       oxlint-tsgolint:
-        specifier: 7.0.2007
-        version: 7.0.2007
+        specifier: 7.0.2008
+        version: 7.0.2008
       pg:
         specifier: 8.23.1
         version: 8.23.1
@@ -281,10 +281,10 @@ importers:
         version: '@typescript/typescript6@6.0.2'
       vite-plus:
         specifier: 1.7.0
-        version: 1.7.0(@types/node@26.6.5)(@typescript/typescript6@6.0.2)(oxlint-tsgolint@7.0.2007)(yaml@2.9.1)
+        version: 1.7.0(@types/node@26.6.5)(@typescript/typescript6@6.0.2)(oxlint-tsgolint@7.0.2008)(yaml@2.9.1)
       vitest:
         specifier: 5.1.1
-        version: 5.1.1(@types/node@26.6.5)(@vitest/browser-preview@5.1.0)(vite@8.3.5(@types/node@26.6.5)(yaml@2.9.1))
+        version: 5.1.1(@types/node@26.6.5)(vite@8.3.5(@types/node@26.6.5)(yaml@2.9.1))
 
 packages:
 
@@ -616,33 +616,33 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@oxlint-tsgolint/darwin-arm64@7.0.2007':
-    resolution: {integrity: sha512-bjNxPFyu1wNK74epHzXrtVLrj7oEuB8jQvJZDSia2d5EZ/0YgnyhI37E9U530IUZlNCqlTWjko1iT3CKAYF9+A==}
+  '@oxlint-tsgolint/darwin-arm64@7.0.2008':
+    resolution: {integrity: sha512-RXcQ439KXqspwHtw39825cyFmvrkOa1AA2CnqFNNG0pVJB0FdhpfQZsDLjRc/3Mt/uEG0MWOG50Hl09J2Ra9UA==}
     cpu: [arm64]
     os: [darwin]
 
-  '@oxlint-tsgolint/darwin-x64@7.0.2007':
-    resolution: {integrity: sha512-dCd7mzk2FeTaU46LLeXy5mQyEFICaPqlew/LpehNzEuL86D0jTYlwZHbibRqdRrvkSNgq1szz/7014FIHgyV1g==}
+  '@oxlint-tsgolint/darwin-x64@7.0.2008':
+    resolution: {integrity: sha512-4FpkHVDF1I4W0Owgsff8rDdf/XVcI9aoqflqyh3JiMCg7zCzWNkB0hfKMNjMDYDAeK/k1CNawAb7Y7mYGr/Xhg==}
     cpu: [x64]
     os: [darwin]
 
-  '@oxlint-tsgolint/linux-arm64@7.0.2007':
-    resolution: {integrity: sha512-qb0XUQXuTmQ8H++zsx/tQitG0/fU3BE16KGp1qXExeDgRzEc7WIlCuN1i+rmA40lty9gQs+x3a73BFODVhTZqA==}
+  '@oxlint-tsgolint/linux-arm64@7.0.2008':
+    resolution: {integrity: sha512-CmheyZowc+sbXlZ2ksFrbqR6Mnu+HHheZZKTP3FpDBe64eCp6DzSrjcR2VHRj6mC2UKF1ZO0J8Z1e9Bgji4kKw==}
     cpu: [arm64]
     os: [linux]
 
-  '@oxlint-tsgolint/linux-x64@7.0.2007':
-    resolution: {integrity: sha512-75vx0067HSgxq/HEZzlHwqhcujn3bshg43fVLTx604jZdZZMQfPVCcxTh2RTEShP7ACT1PRty6vboZlWh5RtEA==}
+  '@oxlint-tsgolint/linux-x64@7.0.2008':
+    resolution: {integrity: sha512-7by4bup5rF9q7i19G6zPDXgywBi3tFB6jGzefoc/BfleNS0Q/eleYpD2SDLmsXzN2hFpDrfAskx7H0WnUtKbtQ==}
     cpu: [x64]
     os: [linux]
 
-  '@oxlint-tsgolint/win32-arm64@7.0.2007':
-    resolution: {integrity: sha512-6zl7I+BvScfOPtnPtSEP5JA+z8NkDPGd47YnQChL5lLF/Dzs7Rasr1G+q0zGlQcP8OEgW43hW4QlUTXxPfD13Q==}
+  '@oxlint-tsgolint/win32-arm64@7.0.2008':
+    resolution: {integrity: sha512-u12UqT/xG64vXclqfe3/7I4j2mWSMZmXsMRBxbgmGfHaEfZUEzxl1QCNyx3TDM5OfsWWKH4dAHJtDRxTAiYA7A==}
     cpu: [arm64]
     os: [win32]
 
-  '@oxlint-tsgolint/win32-x64@7.0.2007':
-    resolution: {integrity: sha512-VptFHYhBm0SIWCUkx89hmTrKVOQsDg0iB1YE3EBlvRRtCHGUd3pU1kMxPBg1wOd83ZMmIn7zB6maBROtpmrP5g==}
+  '@oxlint-tsgolint/win32-x64@7.0.2008':
+    resolution: {integrity: sha512-Vjev4Ns8rdGa4Tb85ZsBkei0reLa77j3FNJsCKPo2gi5oTPK5O2eN42sim2ewoorgx7JQ3+49YuUKa1d6UKHPw==}
     cpu: [x64]
     os: [win32]
 
@@ -2854,8 +2854,8 @@ packages:
     resolution: {integrity: sha512-H7wS6QlHsNO0MwmQAcpjcArx9ruaM5pnRn2LKeXVcYmLV6vj/sebxNLKfSCsvIlYGzk/mBCQTk3ujOp2yn9i0g==}
     engines: {node: ^20.19.0 || >=22.12.0}
 
-  oxlint-tsgolint@7.0.2007:
-    resolution: {integrity: sha512-i8X2qf6VVqFzoNVP34joMKuZpO6T2uXMOgKJaSPFc6p+E3FTnbIGPRbI8K4ZApmtDTMu2CIeGfpzeK1zzGwfnA==}
+  oxlint-tsgolint@7.0.2008:
+    resolution: {integrity: sha512-QuRK+gdriCwpOs+1PGq6/aImEEEK+EClNptdVtI0y4bDOhJ0uH/v3noz+yPKe+DYOTdkej75/5f3ouOGP5EGrQ==}
     hasBin: true
 
   oxlint@1.94.0:
@@ -4019,22 +4019,22 @@ snapshots:
   '@oxfmt/binding-win32-x64-msvc@0.79.0':
     optional: true
 
-  '@oxlint-tsgolint/darwin-arm64@7.0.2007':
+  '@oxlint-tsgolint/darwin-arm64@7.0.2008':
     optional: true
 
-  '@oxlint-tsgolint/darwin-x64@7.0.2007':
+  '@oxlint-tsgolint/darwin-x64@7.0.2008':
     optional: true
 
-  '@oxlint-tsgolint/linux-arm64@7.0.2007':
+  '@oxlint-tsgolint/linux-arm64@7.0.2008':
     optional: true
 
-  '@oxlint-tsgolint/linux-x64@7.0.2007':
+  '@oxlint-tsgolint/linux-x64@7.0.2008':
     optional: true
 
-  '@oxlint-tsgolint/win32-arm64@7.0.2007':
+  '@oxlint-tsgolint/win32-arm64@7.0.2008':
     optional: true
 
-  '@oxlint-tsgolint/win32-x64@7.0.2007':
+  '@oxlint-tsgolint/win32-x64@7.0.2008':
     optional: true
 
   '@oxlint/binding-android-arm-eabi@1.94.0':
@@ -4308,7 +4308,7 @@ snapshots:
 
   '@sindresorhus/merge-streams@4.0.0': {}
 
-  '@stylistic/eslint-plugin@6.0.1(eslint@10.15.0(supports-color@7.2.0))(oxlint@1.94.0(oxlint-tsgolint@7.0.2007)(vite-plus@1.7.0(@types/node@26.6.5)(@typescript/typescript6@6.0.2)(oxlint-tsgolint@7.0.2007)(yaml@2.9.1)))':
+  '@stylistic/eslint-plugin@6.0.1(eslint@10.15.0(supports-color@7.2.0))(oxlint@1.94.0(oxlint-tsgolint@7.0.2008)(vite-plus@1.7.0(@types/node@26.6.5)(@typescript/typescript6@6.0.2)(oxlint-tsgolint@7.0.2008)(yaml@2.9.1)))':
     dependencies:
       '@eslint-community/eslint-utils': 4.10.1(eslint@10.15.0(supports-color@7.2.0))
       '@typescript-eslint/types': 8.73.0
@@ -4317,7 +4317,7 @@ snapshots:
       picomatch: 4.0.7
     optionalDependencies:
       eslint: 10.15.0(supports-color@7.2.0)
-      oxlint: 1.94.0(oxlint-tsgolint@7.0.2007)(vite-plus@1.7.0(@types/node@26.6.5)(@typescript/typescript6@6.0.2)(oxlint-tsgolint@7.0.2007)(yaml@2.9.1))
+      oxlint: 1.94.0(oxlint-tsgolint@7.0.2008)(vite-plus@1.7.0(@types/node@26.6.5)(@typescript/typescript6@6.0.2)(oxlint-tsgolint@7.0.2008)(yaml@2.9.1))
 
   '@testing-library/dom@10.4.2':
     dependencies:
@@ -4644,7 +4644,7 @@ snapshots:
     optionalDependencies:
       '@typescript-eslint/eslint-plugin': 8.72.0(@typescript-eslint/parser@8.72.0(@typescript/typescript6@6.0.2)(eslint@10.15.0(supports-color@7.2.0))(supports-color@7.2.0))(@typescript/typescript6@6.0.2)(eslint@10.15.0(supports-color@7.2.0))(supports-color@7.2.0)
       typescript: '@typescript/typescript6@6.0.2'
-      vitest: 5.1.1(@types/node@26.6.5)(@vitest/browser-preview@5.1.0)(vite@8.3.5(@types/node@26.6.5)(yaml@2.9.1))
+      vitest: 5.1.1(@types/node@26.6.5)(vite@8.3.5(@types/node@26.6.5)(yaml@2.9.1))
     transitivePeerDependencies:
       - supports-color
 
@@ -5958,7 +5958,7 @@ snapshots:
       type-check: 0.4.0
       word-wrap: 1.2.5
 
-  oxfmt@0.79.0(vite-plus@1.7.0(@types/node@26.6.5)(@typescript/typescript6@6.0.2)(oxlint-tsgolint@7.0.2007)(yaml@2.9.1)):
+  oxfmt@0.79.0(vite-plus@1.7.0(@types/node@26.6.5)(@typescript/typescript6@6.0.2)(oxlint-tsgolint@7.0.2008)(yaml@2.9.1)):
     dependencies:
       tinypool: 2.2.0
     optionalDependencies:
@@ -5981,11 +5981,11 @@ snapshots:
       '@oxfmt/binding-win32-arm64-msvc': 0.79.0
       '@oxfmt/binding-win32-ia32-msvc': 0.79.0
       '@oxfmt/binding-win32-x64-msvc': 0.79.0
-      vite-plus: 1.7.0(@types/node@26.6.5)(@typescript/typescript6@6.0.2)(oxlint-tsgolint@7.0.2007)(yaml@2.9.1)
+      vite-plus: 1.7.0(@types/node@26.6.5)(@typescript/typescript6@6.0.2)(oxlint-tsgolint@7.0.2008)(yaml@2.9.1)
 
-  oxlint-config-decent@5.0.0(0be5a9cdae22b1268f9736bf8f6a29f4):
+  oxlint-config-decent@5.0.0(250cbfd9a36fbd02ee606f27228b2f2e):
     dependencies:
-      '@stylistic/eslint-plugin': 6.0.1(eslint@10.15.0(supports-color@7.2.0))(oxlint@1.94.0(oxlint-tsgolint@7.0.2007)(vite-plus@1.7.0(@types/node@26.6.5)(@typescript/typescript6@6.0.2)(oxlint-tsgolint@7.0.2007)(yaml@2.9.1)))
+      '@stylistic/eslint-plugin': 6.0.1(eslint@10.15.0(supports-color@7.2.0))(oxlint@1.94.0(oxlint-tsgolint@7.0.2008)(vite-plus@1.7.0(@types/node@26.6.5)(@typescript/typescript6@6.0.2)(oxlint-tsgolint@7.0.2008)(yaml@2.9.1)))
       '@typescript-eslint/eslint-plugin': 8.72.0(@typescript-eslint/parser@8.72.0(@typescript/typescript6@6.0.2)(eslint@10.15.0(supports-color@7.2.0))(supports-color@7.2.0))(@typescript/typescript6@6.0.2)(eslint@10.15.0(supports-color@7.2.0))(supports-color@7.2.0)
       eslint: 10.15.0(supports-color@7.2.0)
       eslint-plugin-jsdoc: 65.5.0(@typescript/typescript6@6.0.2)(eslint@10.15.0(supports-color@7.2.0))(supports-color@7.2.0)(typescript@7.0.2)
@@ -5994,22 +5994,22 @@ snapshots:
       oxlint-plugin-eslint: 1.94.0
     optionalDependencies:
       '@vitest/eslint-plugin': 1.6.28(@typescript-eslint/eslint-plugin@8.72.0(@typescript-eslint/parser@8.72.0(@typescript/typescript6@6.0.2)(eslint@10.15.0(supports-color@7.2.0))(supports-color@7.2.0))(@typescript/typescript6@6.0.2)(eslint@10.15.0(supports-color@7.2.0))(supports-color@7.2.0))(@typescript/typescript6@6.0.2)(eslint@10.15.0(supports-color@7.2.0))(supports-color@7.2.0)(vitest@5.1.1)
-      oxlint: 1.94.0(oxlint-tsgolint@7.0.2007)(vite-plus@1.7.0(@types/node@26.6.5)(@typescript/typescript6@6.0.2)(oxlint-tsgolint@7.0.2007)(yaml@2.9.1))
-      oxlint-tsgolint: 7.0.2007
+      oxlint: 1.94.0(oxlint-tsgolint@7.0.2008)(vite-plus@1.7.0(@types/node@26.6.5)(@typescript/typescript6@6.0.2)(oxlint-tsgolint@7.0.2008)(yaml@2.9.1))
+      oxlint-tsgolint: 7.0.2008
       typescript: '@typescript/typescript6@6.0.2'
 
   oxlint-plugin-eslint@1.94.0: {}
 
-  oxlint-tsgolint@7.0.2007:
+  oxlint-tsgolint@7.0.2008:
     optionalDependencies:
-      '@oxlint-tsgolint/darwin-arm64': 7.0.2007
-      '@oxlint-tsgolint/darwin-x64': 7.0.2007
-      '@oxlint-tsgolint/linux-arm64': 7.0.2007
-      '@oxlint-tsgolint/linux-x64': 7.0.2007
-      '@oxlint-tsgolint/win32-arm64': 7.0.2007
-      '@oxlint-tsgolint/win32-x64': 7.0.2007
+      '@oxlint-tsgolint/darwin-arm64': 7.0.2008
+      '@oxlint-tsgolint/darwin-x64': 7.0.2008
+      '@oxlint-tsgolint/linux-arm64': 7.0.2008
+      '@oxlint-tsgolint/linux-x64': 7.0.2008
+      '@oxlint-tsgolint/win32-arm64': 7.0.2008
+      '@oxlint-tsgolint/win32-x64': 7.0.2008
 
-  oxlint@1.94.0(oxlint-tsgolint@7.0.2007)(vite-plus@1.7.0(@types/node@26.6.5)(@typescript/typescript6@6.0.2)(oxlint-tsgolint@7.0.2007)(yaml@2.9.1)):
+  oxlint@1.94.0(oxlint-tsgolint@7.0.2008)(vite-plus@1.7.0(@types/node@26.6.5)(@typescript/typescript6@6.0.2)(oxlint-tsgolint@7.0.2008)(yaml@2.9.1)):
     optionalDependencies:
       '@oxlint/binding-android-arm-eabi': 1.94.0
       '@oxlint/binding-android-arm64': 1.94.0
@@ -6030,8 +6030,8 @@ snapshots:
       '@oxlint/binding-win32-arm64-msvc': 1.94.0
       '@oxlint/binding-win32-ia32-msvc': 1.94.0
       '@oxlint/binding-win32-x64-msvc': 1.94.0
-      oxlint-tsgolint: 7.0.2007
-      vite-plus: 1.7.0(@types/node@26.6.5)(@typescript/typescript6@6.0.2)(oxlint-tsgolint@7.0.2007)(yaml@2.9.1)
+      oxlint-tsgolint: 7.0.2008
+      vite-plus: 1.7.0(@types/node@26.6.5)(@typescript/typescript6@6.0.2)(oxlint-tsgolint@7.0.2008)(yaml@2.9.1)
 
   p-each-series@3.0.0: {}
 
@@ -6635,7 +6635,7 @@ snapshots:
 
   verkit@0.5.0: {}
 
-  vite-plus@1.7.0(@types/node@26.6.5)(@typescript/typescript6@6.0.2)(oxlint-tsgolint@7.0.2007)(yaml@2.9.1):
+  vite-plus@1.7.0(@types/node@26.6.5)(@typescript/typescript6@6.0.2)(oxlint-tsgolint@7.0.2008)(yaml@2.9.1):
     dependencies:
       '@oxc-project/runtime': 0.159.0
       '@oxc-project/types': 0.159.0
@@ -6647,8 +6647,8 @@ snapshots:
       '@vitest/snapshot': 5.1.0
       '@vitest/spy': 5.1.0
       '@vitest/utils': 5.1.0
-      oxfmt: 0.79.0(vite-plus@1.7.0(@types/node@26.6.5)(@typescript/typescript6@6.0.2)(oxlint-tsgolint@7.0.2007)(yaml@2.9.1))
-      oxlint: 1.94.0(oxlint-tsgolint@7.0.2007)(vite-plus@1.7.0(@types/node@26.6.5)(@typescript/typescript6@6.0.2)(oxlint-tsgolint@7.0.2007)(yaml@2.9.1))
+      oxfmt: 0.79.0(vite-plus@1.7.0(@types/node@26.6.5)(@typescript/typescript6@6.0.2)(oxlint-tsgolint@7.0.2008)(yaml@2.9.1))
+      oxlint: 1.94.0(oxlint-tsgolint@7.0.2008)(vite-plus@1.7.0(@types/node@26.6.5)(@typescript/typescript6@6.0.2)(oxlint-tsgolint@7.0.2008)(yaml@2.9.1))
       tsrs: 7.1.0-beta.tsrs2
       vite: '@voidzero-dev/vite-plus-core@8.3.8000(@types/node@26.6.5)(@typescript/typescript6@6.0.2)(yaml@2.9.1)'
       vitest: 5.1.0(@types/node@26.6.5)(@vitest/browser-preview@5.1.0)(@voidzero-dev/vite-plus-core@8.3.8000(@types/node@26.6.5)(@typescript/typescript6@6.0.2)(yaml@2.9.1))
@@ -6731,7 +6731,7 @@ snapshots:
     transitivePeerDependencies:
       - msw
 
-  vitest@5.1.1(@types/node@26.6.5)(@vitest/browser-preview@5.1.0)(vite@8.3.5(@types/node@26.6.5)(yaml@2.9.1)):
+  vitest@5.1.1(@types/node@26.6.5)(vite@8.3.5(@types/node@26.6.5)(yaml@2.9.1)):
     dependencies:
       '@types/chai': 5.2.3
       '@vitest/mocker': 5.1.1(vite@8.3.5(@types/node@26.6.5)(yaml@2.9.1))
@@ -6749,7 +6749,6 @@ snapshots:
       why-is-node-running: 3.2.1
     optionalDependencies:
       '@types/node': 26.6.5
-      '@vitest/browser-preview': 5.1.0(@voidzero-dev/vite-plus-core@8.3.8000(@types/node@26.6.5)(@typescript/typescript6@6.0.2)(yaml@2.9.1))(vitest@5.1.0)
     transitivePeerDependencies:
       - msw
 
